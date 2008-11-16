@@ -13,6 +13,19 @@ property _outputAsLIst : false
 property _formattingStyle : missing value
 property _wrapWithBlock : true
 property _targetObj : missing value
+property _target_text : missing value
+
+
+on initialize()
+	set my _formattingStyle to make_from_setting() of ASFormattingStyle
+	set my _white_charset to XCharacterSet's make_whites_newlines()'s push("")
+	set my _targetObj to missing value
+	set my _target_text to missing value
+end initialize
+
+on formatting_style()
+	return my _formattingStyle
+end formatting_style
 
 on temporary_doctitle()
 	return _temporary_doctitle
@@ -30,18 +43,17 @@ on logToConsole(a_text)
 	do shell script "echo " & quoted form of a_text & ">/dev/console"
 end logToConsole
 
-on build_css()
+on css_as_unicode()
 	if _formattingStyle is missing value then
 		set _formattingStyle to make_from_setting() of ASFormattingStyle
 	end if
-	return build_css() of _formattingStyle
-end build_css
+	return _formattingStyle's as_unicode()
+end css_as_unicode
 
 on markup_with_style(a_style, a_text)
 	--log a_text
 	local class_name
 	set class_name to _formattingStyle's css_class(a_style)
-	--if a_text is in {"", space, return, lineFeed, tab} then
 	if _white_charset's is_member(a_text) then
 		return a_text's as_unicode()
 	end if
@@ -106,15 +118,16 @@ on process_paragraph(a_text)
 	return a_div
 end process_paragraph
 
-on initialize()
-	set _formattingStyle to make_from_setting() of ASFormattingStyle
-	set my _white_charset to XCharacterSet's make_whites_newlines()'s push("")
-end initialize
-
 on target_text()
-	tell application "Script Editor"
-		return contents of contents of _targetObj
-	end tell
+	if my _targetObj is not missing value then
+		tell application "Script Editor"
+			return contents of contents of my _targetObj
+		end tell
+	end if
+	if _target_text is not missing value then
+		return my _target_text
+	end if
+	return missing value
 end target_text
 
 on process_attribute_runs(content_list, font_list, size_list, color_list, prefer_inline)
@@ -173,11 +186,7 @@ on process_attribute_runs(content_list, font_list, size_list, color_list, prefer
 	end repeat
 	
 	set out_text to out_list's as_unicode_with("")
-	--log "aaa"
-	--set a_list to every paragraph of content_text
-	--set source_list to XList's make_with(a_list)
 	set source_list to XList's make_with(get every paragraph of out_text)
-	--log "bbb"
 	set n_par to count source_list
 	set is_inline to (prefer_inline and (n_par is 1))
 	local out_html
@@ -212,18 +221,26 @@ on process_attribute_runs(content_list, font_list, size_list, color_list, prefer
 		out_contents's delete_at(-1)
 	end if
 	
-	return out_html's as_html()
+	return out_html
 end process_attribute_runs
 
+on process_file(a_path, prefer_inline)
+	--log "start process_file"
+	set style_runs to call method "styleRunsForFile:" of class "ASFormatting" with parameter a_path
+	--log style_runs
+	set my _target_text to |source| of style_runs
+	--log "will end process_file"
+	return process_attribute_runs(code of style_runs, |font| of style_runs, |size| of style_runs, |color| of style_runs, prefer_inline)
+end process_file
+
 on process_document(doc_ref)
-	log "start process_document"
+	--log "start process_document"
 	tell application "Script Editor"
 		set runForSelection to ("" is not (contents of selection of doc_ref))
 		
 		if runForSelection then
 			set _targetObj to a reference to selection of doc_ref
 		else
-			--set targetObj to a reference to doc_ref
 			set _targetObj to doc_ref
 		end if
 		tell contents of contents of _targetObj
@@ -233,7 +250,7 @@ on process_document(doc_ref)
 			set color_list to color of every attribute run
 		end tell
 	end tell
-	log "end process_document"
+	--log "end process_document"
 	return process_attribute_runs(content_list, font_list, size_list, color_list, runForSelection)
 end process_document
 

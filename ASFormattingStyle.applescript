@@ -10,7 +10,7 @@ on css_class(style_rec)
 	return my _styleDict's key_for_value(style_rec)
 end css_class
 
-on build_css()
+on as_css()
 	set a_css to make CSSBuilder
 	
 	script SelectorAdder
@@ -21,7 +21,16 @@ on build_css()
 	end script
 	
 	my _styleDict's each(SelectorAdder)
-	
+	return a_css
+end as_css
+
+on as_unicode()
+	set a_css to as_css()
+	return a_css's as_unicode()
+end as_unicode
+
+on build_css()
+	set a_css to as_css()
 	return a_css's as_unicode()
 end build_css
 

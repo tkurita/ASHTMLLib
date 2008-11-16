@@ -4,6 +4,48 @@
 
 @implementation ASFormatting
 
++ (NSString *)scriptSource:(NSString *)path
+{
+	NSDictionary *error_info;
+	NSAppleScript *a_script = [[[NSAppleScript alloc] initWithContentsOfURL:
+									[NSURL fileURLWithPath:path] error:&error_info] autorelease];
+									
+	return [a_script source];
+}
+
++ (NSDictionary *)styleRunsForOSAScript:(OSAScript *)aScript
+{
+	NSAttributedString *styled_source = [aScript richTextSource];
+	
+	NSMutableArray *attr_list = [NSMutableArray array];
+	NSMutableArray *code_list = [NSMutableArray array];
+ 	NSDictionary *attributes;
+	unsigned int length = [styled_source length];
+	NSRange effectiveRange = NSMakeRange(0, 0);
+	NSRange all_range = NSMakeRange(0, length);
+	while (NSMaxRange(effectiveRange) < length) {
+		attributes = [styled_source attributesAtIndex:NSMaxRange(effectiveRange) 
+								longestEffectiveRange:&effectiveRange inRange:all_range];
+		//NSLog([attributes description]);
+		[attr_list addObject:attributes];
+		[code_list addObject:[[styled_source attributedSubstringFromRange:effectiveRange] string]];
+	}
+	NSArray *font_names = [attr_list valueForKeyPath:@"NSFont.familyName"];
+	NSArray *font_sizes = [attr_list valueForKeyPath:@"NSFont.pointSize"];
+	NSArray *font_colors = [attr_list valueForKey:@"NSColor"];
+	return [NSDictionary dictionaryWithObjectsAndKeys:font_names, @"font", 
+							font_sizes, @"size", font_colors, @"color",code_list, @"code", 
+							[styled_source string], @"source", nil];
+}
+
++ (NSDictionary *)styleRunsForFile:(NSString *)path
+{
+	NSDictionary *error_info = nil;
+	NSURL *url = [NSURL fileURLWithPath:path];
+	OSAScript *a_script = [[[OSAScript alloc] initWithContentsOfURL:url error:&error_info] autorelease];
+	return [self styleRunsForOSAScript:a_script];
+}
+
 + (NSDictionary *)styleRunsForSource:(NSString *)source
 {
 	OSAScript *a_script = [[[OSAScript alloc] initWithSource:source] autorelease];
