@@ -5,7 +5,7 @@ global XText
 global XCharacterSet
 
 property _brTag : "<br />"
-property lineFeed : ASCII character 10
+property _linefeed : ASCII character 10
 property _white_charset : missing value
 property _temporary_doctitle : "** HTML Formatting **"
 
@@ -53,10 +53,10 @@ end css_as_unicode
 on markup_with_style(a_style, a_text)
 	--log a_text
 	local class_name
-	set class_name to _formattingStyle's css_class(a_style)
 	if _white_charset's is_member(a_text) then
 		return a_text's as_unicode()
 	end if
+	set class_name to _formattingStyle's css_class(a_style)
 	
 	if class_name is not missing value then
 		set a_list to XList's make_with(get every paragraph of a_text)
@@ -73,7 +73,7 @@ on markup_with_style(a_style, a_text)
 		end script
 		
 		set result_list to a_list's map(StyleApplyer)
-		return result_list's as_unicode_with(lineFeed)
+		return result_list's as_unicode_with(_linefeed)
 	else
 		return a_text's as_unicode()
 	end if
@@ -157,7 +157,7 @@ on process_attribute_runs(content_list, font_list, size_list, color_list, prefer
 		--local a_text
 		set a_text to XText's make_with(content_list's item_at(i))
 		set a_text to my escape_characters(a_text)
-		if (not is_new_line) and (length of a_text > 1) and (a_text's starts_with(lineFeed)) then
+		if (not is_new_line) and (length of a_text > 1) and (a_text's starts_with(_linefeed)) then
 			set is_new_line to true
 		end if
 		
@@ -180,9 +180,9 @@ on process_attribute_runs(content_list, font_list, size_list, color_list, prefer
 				set is_new_line to true
 			end if
 		end repeat
-		set taged_text to text_list's as_unicode_with(lineFeed)
+		set taged_text to text_list's as_unicode_with(_linefeed)
 		out_list's push(taged_text)
-		set is_new_line to (taged_text ends with lineFeed)
+		set is_new_line to (taged_text ends with _linefeed)
 	end repeat
 	
 	set out_text to out_list's as_unicode_with("")

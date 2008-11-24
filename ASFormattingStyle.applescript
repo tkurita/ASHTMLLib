@@ -40,7 +40,7 @@ end build_css
 
 on make_from_setting()
 	set style_records to call method "styles" of class "ASFormatting"
-	log style_records
+	--log style_records
 	script FormattingStyle
 		property _styleDict : XDict's make_with_lists(_style_names, style_records)
 	end script
