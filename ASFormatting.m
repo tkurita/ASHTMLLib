@@ -2,6 +2,8 @@
 #import <Carbon/Carbon.h>
 #import <OSAKit/OSAScript.h>
 
+#define useLog 0
+
 @implementation ASFormatting
 
 + (NSString *)scriptSource:(NSString *)path
@@ -26,14 +28,15 @@
 	while (NSMaxRange(effectiveRange) < length) {
 		attributes = [styled_source attributesAtIndex:NSMaxRange(effectiveRange) 
 								longestEffectiveRange:&effectiveRange inRange:all_range];
-		//NSLog([attributes description]);
 		[attr_list addObject:attributes];
 		[code_list addObject:[[styled_source attributedSubstringFromRange:effectiveRange] string]];
 	}
 	NSArray *font_names = [attr_list valueForKeyPath:@"NSFont.fontName"];
 	NSArray *font_sizes = [attr_list valueForKeyPath:@"NSFont.pointSize"];
 	NSArray *font_colors = [attr_list valueForKey:@"NSColor"];
+#if useLog
 	NSLog([attr_list description]);
+#endif
 	return [NSDictionary dictionaryWithObjectsAndKeys:font_names, @"font", 
 							font_sizes, @"size", font_colors, @"color",code_list, @"code", 
 							[styled_source string], @"source", nil];
@@ -63,7 +66,6 @@
 	while (NSMaxRange(effectiveRange) < length) {
 		attributes = [styled_source attributesAtIndex:NSMaxRange(effectiveRange) 
 								longestEffectiveRange:&effectiveRange inRange:all_range];
-		//NSLog([attributes description]);
 		[attr_list addObject:attributes];
 		[code_list addObject:[[styled_source attributedSubstringFromRange:effectiveRange] string]];
 	}

@@ -6,11 +6,11 @@ global CSSBuilder
 property _style_names : {"uncompiled", "normal", "langKeyword", "appKeyword", "comment", "literal", "userDefine", "reference"}
 
 on css_class(style_rec)
-	log "start css_class"
-	log style_rec
+	--log "start css_class"
+	--log style_rec
 	set a_key to my _styleDict's key_for_value(style_rec)
-	log a_key
-	log "end css_class"
+	--log a_key
+	--log "end css_class"
 	return a_key
 end css_class
 

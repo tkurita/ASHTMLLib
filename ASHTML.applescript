@@ -306,7 +306,7 @@ on do_debug()
 	--process_text("say_something(a_message)")
 	initialize()
 	set a_text to process_document(front document of application "Script Editor")
-	log a_text
+	--log a_text
 end do_debug
 
 (*
