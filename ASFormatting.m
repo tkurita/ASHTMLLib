@@ -30,9 +30,10 @@
 		[attr_list addObject:attributes];
 		[code_list addObject:[[styled_source attributedSubstringFromRange:effectiveRange] string]];
 	}
-	NSArray *font_names = [attr_list valueForKeyPath:@"NSFont.familyName"];
+	NSArray *font_names = [attr_list valueForKeyPath:@"NSFont.fontName"];
 	NSArray *font_sizes = [attr_list valueForKeyPath:@"NSFont.pointSize"];
 	NSArray *font_colors = [attr_list valueForKey:@"NSColor"];
+	NSLog([attr_list description]);
 	return [NSDictionary dictionaryWithObjectsAndKeys:font_names, @"font", 
 							font_sizes, @"size", font_colors, @"color",code_list, @"code", 
 							[styled_source string], @"source", nil];
@@ -66,7 +67,7 @@
 		[attr_list addObject:attributes];
 		[code_list addObject:[[styled_source attributedSubstringFromRange:effectiveRange] string]];
 	}
-	NSArray *font_names = [attr_list valueForKeyPath:@"NSFont.familyName"];
+	NSArray *font_names = [attr_list valueForKeyPath:@"NSFont.fontName"];
 	NSArray *font_sizes = [attr_list valueForKeyPath:@"NSFont.pointSize"];
 	NSArray *font_colors = [attr_list valueForKey:@"NSColor"];
 	return [NSDictionary dictionaryWithObjectsAndKeys:font_names, @"font", 
@@ -107,19 +108,20 @@ cleanup:
 	return [names autorelease];
 }
 
-NSAppleEventDescriptor *parseStyle(const STElement * inStyle)
+NSAppleEventDescriptor *parseStyle(const STElement* inStyle)
 {
-	Str255		fontName ;
 	OSStatus	err ;
 	NSString *err_msg;
 	
 	NSAppleEventDescriptor *style_record = [NSAppleEventDescriptor recordDescriptor];
 	//font name
-	if ( ( err = FMGetFontFamilyName (inStyle -> stFont, fontName ) ) != noErr ) {
-		err_msg = [NSString stringWithFormat:@"Fail to FMGetFontFamilyName : %d", err];
-		goto cleanup;
+	CGFontRef font_ref;
+	FMFontStyle o_style;
+	if ((err = FMFontGetCGFontRefFromFontFamilyInstance(inStyle->stFont, inStyle->stFace, &font_ref, &o_style)) !=noErr) {
+		err_msg = [NSString stringWithFormat:@"Fail to FMFontGetCGFontRefFromFontFamilyInstance : %d", err];
+		goto cleanup;	
 	}
-	NSString *font_name = (NSString *)CFStringCreateWithPascalString(NULL, fontName, CFStringGetSystemEncoding());
+	NSString * font_name = (NSString *)CGFontCopyPostScriptName(font_ref);
 	[style_record setParamDescriptor:[NSAppleEventDescriptor descriptorWithString:[font_name autorelease]]
 					forKeyword:'fonO']; // font is not pFont in AppleScript Studio
 	/*
@@ -153,12 +155,12 @@ cleanup:
 	ComponentInstance	ci = 0 ;
 	STHandle			sourceStyles = 0 ;
 	err = errOSAGeneralError ;
-	if ( ( ci = OpenDefaultComponent ( kOSAComponentType, kAppleScriptSubtype ) ) == 0 )
+	if ( ( ci = OpenDefaultComponent(kOSAComponentType, kAppleScriptSubtype)) == 0 )
 	{
 		goto cleanup;
 	}
 	//	get AppleScript formats as a TextEdit style table
-	if ( ( err = ASGetSourceStyles ( ci, & sourceStyles ) ) != noErr )
+	if ( ( err = ASGetSourceStyles(ci, &sourceStyles)) != noErr )
 	{
 		goto cleanup ;
 	}
@@ -172,7 +174,7 @@ cleanup:
 
 	//	sanity check: make sure the style table is big enough to
 	//	contain all the AppleScript styles
-	if ( GetHandleSize ( ( Handle ) sourceStyles ) < kASNumberOfSourceStyles * sizeof ( STElement ) )
+	if ( GetHandleSize ((Handle)sourceStyles) < kASNumberOfSourceStyles * sizeof(STElement))
 	{
 		goto cleanup ;
 	}
