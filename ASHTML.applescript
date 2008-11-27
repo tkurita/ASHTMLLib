@@ -21,6 +21,7 @@ on initialize()
 	set my _white_charset to XCharacterSet's make_whites_newlines()'s push("")
 	set my _targetObj to missing value
 	set my _target_text to missing value
+	return me
 end initialize
 
 on formatting_style()
