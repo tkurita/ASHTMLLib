@@ -5,10 +5,41 @@ global CSSBuilder
 
 property _style_names : {"uncompiled", "normal", "langKeyword", "appKeyword", "comment", "literal", "userDefine", "reference"}
 
+script StyleComparator
+	property parent : AppleScript
+	
+	on is_similar_color(c1, c2)
+		set cdiff to {(item 1 of c1) - (item 1 of c2), (item 2 of c1) - (item 2 of c2), (item 3 of c1) - (item 3 of c2)}
+		set sq to (item 1 of cdiff) ^ 2 + (item 2 of cdiff) ^ 2 + (item 3 of cdiff) ^ 2
+		return (sq < 4)
+	end is_similar_color
+	
+	on do(v1, v2)
+		set a_result to v1 is v2
+		if a_result then return true
+		(*
+		if not (font of v1 is font of v2) then
+			return false
+		end if
+		*)
+		if not (size of v1 is size of v1) then
+			return false
+		end if
+		return is_similar_color(color of v1, color of v2)
+	end do
+end script
+
 on css_class(style_rec)
 	--log "start css_class"
 	--log style_rec
-	set a_key to my _styleDict's key_for_value(style_rec)
+	try
+		set a_key to my _styleDict's key_for_value(style_rec)
+	on error number 900
+		set comparator_buff to my _styleDict's value_comparator()
+		my _styleDict's set_value_comparator(StyleComparator)
+		set a_key to my _styleDict's key_for_value(style_rec)
+		my _styleDict's set_value_comparator(comparator_buff)
+	end try
 	--log a_key
 	--log "end css_class"
 	return a_key
@@ -43,35 +74,11 @@ on build_css()
 	return a_result
 end build_css
 
-script StyleComparator
-	property parent : AppleScript
-	
-	on is_similar_color(c1, c2)
-		set cdiff to {(item 1 of c1) - (item 1 of c2), (item 2 of c1) - (item 2 of c2), (item 3 of c1) - (item 3 of c2)}
-		set sq to (item 1 of cdiff) ^ 2 + (item 2 of cdiff) ^ 2 + (item 3 of cdiff) ^ 2
-		return (sq < 4)
-	end is_similar_color
-	
-	on do(v1, v2)
-		set a_result to v1 is v2
-		if a_result then return true
-		(*
-		if not (font of v1 is font of v2) then
-			return false
-		end if
-		*)
-		if not (size of v1 is size of v1) then
-			return false
-		end if
-		return is_similar_color(color of v1, color of v2)
-	end do
-end script
-
 on make_from_setting()
 	set style_records to call method "styles" of class "ASFormatting"
 	--log style_records
 	script FormattingStyle
-		property _styleDict : XDict's make_with_lists(_style_names, style_records)'s set_value_comparator(StyleComparator)
+		property _styleDict : XDict's make_with_lists(_style_names, style_records)
 	end script
 	return FormattingStyle
 end make_from_setting
