@@ -29,15 +29,15 @@ on formatting_style()
 end formatting_style
 
 on temporary_doctitle()
-	return _temporary_doctitle
+	return my _temporary_doctitle
 end temporary_doctitle
 
 on set_output_as_list(a_flag)
-	set _outputAsLIst to a_flag
+	set my _outputAsLIst to a_flag
 end set_output_as_list
 
 on set_wrap_with_block(a_flag)
-	set _wrapWithBlock to a_flag
+	set my _wrapWithBlock to a_flag
 end set_wrap_with_block
 
 on logToConsole(a_text)
@@ -45,10 +45,10 @@ on logToConsole(a_text)
 end logToConsole
 
 on css_as_unicode()
-	if _formattingStyle is missing value then
-		set _formattingStyle to make_from_setting() of ASFormattingStyle
+	if my _formattingStyle is missing value then
+		set my _formattingStyle to make_from_setting() of ASFormattingStyle
 	end if
-	return _formattingStyle's as_unicode()
+	return my _formattingStyle's as_unicode()
 end css_as_unicode
 
 on markup_with_style(a_style, a_text)
@@ -185,7 +185,6 @@ on process_attribute_runs(content_list, font_list, size_list, color_list, prefer
 		out_list's push(taged_text)
 		set is_new_line to (taged_text ends with _linefeed)
 	end repeat
-	
 	set out_text to out_list's as_unicode_with("")
 	set source_list to XList's make_with(get every paragraph of out_text)
 	set n_par to count source_list
@@ -193,7 +192,6 @@ on process_attribute_runs(content_list, font_list, size_list, color_list, prefer
 	local out_html
 	set out_html to make HTMLElement
 	set wrapWithDiv to n_par > 1
-	
 	if (not is_inline) and (my _wrapWithBlock) then
 		out_html's set_attribute("class", "sourceCode")
 		if wrapWithDiv then
@@ -203,25 +201,21 @@ on process_attribute_runs(content_list, font_list, size_list, color_list, prefer
 		end if
 		out_html's set_element_name(a_name)
 	end if
-	
 	script ParProcessor
 		on do(a_text)
 			out_html's push_content(process_paragraph(contents of a_text))
 			return true
 		end do
 	end script
-	
 	if wrapWithDiv then
 		source_list's each(ParProcessor)
 	else
 		out_html's push_content(out_text)
 	end if
-	
 	set out_contents to out_html's contents_ref()
 	if out_contents's item_at(-1) is my _brTag then
 		out_contents's delete_at(-1)
 	end if
-	
 	return out_html
 end process_attribute_runs
 
