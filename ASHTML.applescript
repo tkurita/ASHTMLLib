@@ -40,10 +40,6 @@ on set_wrap_with_block(a_flag)
 	set my _wrapWithBlock to a_flag
 end set_wrap_with_block
 
-on logToConsole(a_text)
-	do shell script "echo " & quoted form of a_text & ">/dev/console"
-end logToConsole
-
 on css_as_unicode()
 	if my _formattingStyle is missing value then
 		set my _formattingStyle to make_from_setting() of ASFormattingStyle
@@ -149,7 +145,7 @@ on process_attribute_runs(content_list, font_list, size_list, color_list, prefer
 	
 	set n_attr to content_list's count_items()
 	if n_attr is 0 then
-		error "No contents in the document." number 1480
+		error "No contents in passed arguments to ASHTML." number 1480
 	end if
 	
 	set out_list to make XList
@@ -231,13 +227,14 @@ end process_file
 on process_document(doc_ref)
 	--log "start process_document"
 	tell application "Script Editor"
-		set runForSelection to ("" is not (contents of selection of doc_ref))
+		set run_for_selection to ("" is not (contents of selection of doc_ref))
 		
-		if runForSelection then
+		if run_for_selection then
 			set _targetObj to a reference to selection of doc_ref
 		else
 			set _targetObj to doc_ref
 		end if
+		
 		tell contents of contents of _targetObj
 			set content_list to every attribute run
 			set font_list to font of every attribute run
@@ -245,6 +242,7 @@ on process_document(doc_ref)
 			set color_list to color of every attribute run
 		end tell
 	end tell
+	
 	--log "end process_document"
 	return process_attribute_runs(content_list, font_list, size_list, color_list, runForSelection)
 end process_document
