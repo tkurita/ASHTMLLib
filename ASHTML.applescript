@@ -128,6 +128,7 @@ on target_text()
 end target_text
 
 on process_attribute_runs(content_list, font_list, size_list, color_list, prefer_inline)
+	--log "start process_attribute_runs"
 	set content_list to XList's make_with(content_list)
 	set font_list to XList's make_with(font_list)
 	set size_list to XList's make_with(size_list)
@@ -244,7 +245,7 @@ on process_document(doc_ref)
 	end tell
 	
 	--log "end process_document"
-	return process_attribute_runs(content_list, font_list, size_list, color_list, runForSelection)
+	return process_attribute_runs(content_list, font_list, size_list, color_list, run_for_selection)
 end process_document
 
 on is_launched()
