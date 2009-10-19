@@ -48,20 +48,7 @@
 
 static NSMutableDictionary *styleNamesToCSSNameTable = NULL;
 
-
 @implementation ASFormatting
-
-+ (void)initialize
-{
-	if (!styleNamesToCSSNameTable) {
-		styleNamesToCSSNameTable = [[NSUserDefaults standardUserDefaults] objectForKey:@"styleNameToCSSNameTable"];
-		if (!styleNamesToCSSNameTable) {
-			styleNamesToCSSNameTable = [NSMutableDictionary dictionary];
-		} else {
-			styleNamesToCSSNameTable = [[styleNamesToCSSNameTable mutableCopy] retain];
-		}
-	}
-}
 
 + (NSString *)cssNameForStyleName:(NSString *)styleName
 {
@@ -157,6 +144,17 @@ static NSMutableDictionary *styleNamesToCSSNameTable = NULL;
 
 + (NSAppleEventDescriptor *)styleNames
 {
+	if (!styleNamesToCSSNameTable) {
+		[styleNamesToCSSNameTable release];
+	}
+	styleNamesToCSSNameTable = [[NSUserDefaults standardUserDefaults] objectForKey:@"styleNameToCSSNameTable"];
+	if (!styleNamesToCSSNameTable) {
+		styleNamesToCSSNameTable = [[styleNamesToCSSNameTable mutableCopy] retain];
+	} else {
+		styleNamesToCSSNameTable = [[NSMutableDictionary dictionary] retain];
+	}
+	
+	
 	OSStatus			err = noErr;
 	ComponentInstance	ci = 0 ;
 	err = errOSAGeneralError ;
