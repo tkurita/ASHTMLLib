@@ -4,7 +4,86 @@
 
 #define useLog 0
 
+@interface NSAppleEventDescriptor (ASFormattingExtensions)
+
++ (NSAppleEventDescriptor *)descriptorWithCGFloat:(CGFloat)aValue;
+
+@end
+
+@implementation NSAppleEventDescriptor (ASFormattingExtensions)
+
++ (NSAppleEventDescriptor *)descriptorWithDouble:(double)aValue
+{
+	return [self descriptorWithDescriptorType:typeIEEE64BitFloatingPoint data:[NSData dataWithBytes:&aValue length: sizeof(aValue)]];
+}
+
++ (NSAppleEventDescriptor *)descriptorWithFloat:(float)aValue
+{
+	return [self descriptorWithDescriptorType:typeIEEE32BitFloatingPoint data:[NSData dataWithBytes:&aValue length: sizeof(aValue)]];
+}
+
++ (NSAppleEventDescriptor *)descriptorWithCGFloat:(CGFloat)aValue
+{
+#if CGFLOAT_IS_DOUBLE
+	return [self descriptorWithDouble:aValue];
+#else
+	return [self descriptorWithFloat:aValue];
+#endif
+}
+
++ (NSAppleEventDescriptor *)descriptorWithColor:(NSColor *)aColor
+{
+	RGBColor qdColor;
+	CGFloat red, green, blue, alpha;
+	[aColor getRed:&red green:&green blue:&blue alpha:&alpha];
+	qdColor.red = (unsigned short)(red * 65535.0f);
+	qdColor.green = (unsigned short)(green * 65535.0f);
+	qdColor.blue = (unsigned short)(blue * 65535.0f);
+	return [NSAppleEventDescriptor descriptorWithDescriptorType:typeRGBColor 
+	                                                         bytes:&qdColor 
+	                                                        length:sizeof(RGBColor)];
+}
+
+@end
+
+static NSMutableDictionary *styleNamesToCSSNameTable = NULL;
+
+
 @implementation ASFormatting
+
++ (void)initialize
+{
+	if (!styleNamesToCSSNameTable) {
+		styleNamesToCSSNameTable = [[NSUserDefaults standardUserDefaults] objectForKey:@"styleNameToCSSNameTable"];
+		if (!styleNamesToCSSNameTable) {
+			styleNamesToCSSNameTable = [NSMutableDictionary dictionary];
+		} else {
+			styleNamesToCSSNameTable = [[styleNamesToCSSNameTable mutableCopy] retain];
+		}
+	}
+}
+
++ (NSString *)cssNameForStyleName:(NSString *)styleName
+{
+	NSMutableString *css_name = [styleNamesToCSSNameTable objectForKey:styleName];
+	if (!css_name || ![css_name length]) {
+		css_name = [styleName mutableCopy];
+		NSRange brarange = [css_name rangeOfString:@"("];
+		if (brarange.location != NSNotFound) {
+			if ([[css_name substringWithRange:NSMakeRange(brarange.location-1, 1)] isEqualToString:@" "]) {
+				brarange.location = brarange.location - 1;
+			}
+			brarange.length = [css_name length] - brarange.location;
+			[css_name deleteCharactersInRange:brarange];
+		}
+		[css_name replaceOccurrencesOfString:@" " withString:@"_" options:0 range:NSMakeRange(0,[css_name length])];
+		[css_name replaceOccurrencesOfString:@"," withString:@"" options:0 range:NSMakeRange(0,[css_name length])];
+		[css_name replaceOccurrencesOfString:@"." withString:@"" options:0 range:NSMakeRange(0,[css_name length])];
+		[styleNamesToCSSNameTable setObject:css_name forKey:styleName];
+	}
+	
+	return css_name;
+}
 
 + (NSString *)scriptSource:(NSString *)path
 {
@@ -151,6 +230,27 @@ cleanup:
 	return style_record;
 }
 
+NSAppleEventDescriptor *parseStyle2(const NSDictionary *styleDict)
+{
+	NSAppleEventDescriptor *style_record = [NSAppleEventDescriptor recordDescriptor];
+	//font name
+	
+	[style_record setParamDescriptor:[NSAppleEventDescriptor descriptorWithString:
+									  [[styleDict objectForKey:@"NSFont"] fontName]]
+						  forKeyword:'fonO']; // font is not pFont in AppleScript Studio
+	
+	//font size
+	[style_record setParamDescriptor: 
+		[NSAppleEventDescriptor descriptorWithCGFloat:
+			[[styleDict objectForKey:@"NSFont"] pointSize]]
+						  forKeyword:pSize];
+	
+	//color
+	[style_record setParamDescriptor:
+	 [NSAppleEventDescriptor descriptorWithColor:[styleDict objectForKey:@"NSColor"]]
+						  forKeyword:pColor];
+	return style_record;
+}
 + (NSAppleEventDescriptor *)styles
 {
 	OSStatus			err ;
@@ -162,37 +262,74 @@ cleanup:
 		goto cleanup;
 	}
 	//	get AppleScript formats as a TextEdit style table
-	if ( ( err = ASGetSourceStyles(ci, &sourceStyles)) != noErr )
-	{
-		goto cleanup ;
-	}
-
-	//	sanity check: make sure the style table is non-null
-	err = memFullErr ;
-	if ( sourceStyles == 0 )
-	{
-		goto cleanup ;
-	}
-
-	//	sanity check: make sure the style table is big enough to
-	//	contain all the AppleScript styles
-	if ( GetHandleSize ((Handle)sourceStyles) < kASNumberOfSourceStyles * sizeof(STElement))
-	{
-		goto cleanup ;
+	 if ( ( err = ASGetSourceStyles(ci, &sourceStyles)) != noErr ) {
+	 goto cleanup ;
+	 }
+	 
+	 //	sanity check: make sure the style table is non-null
+	 err = memFullErr ;
+	 if ( sourceStyles == 0 )
+	 {
+	 goto cleanup ;
+	 }
+	 
+	 //	sanity check: make sure the style table is big enough to
+	 //	contain all the AppleScript styles
+	 if ( GetHandleSize ((Handle)sourceStyles) < kASNumberOfSourceStyles * sizeof(STElement))
+	 {
+	 goto cleanup ;
+	 }
+	 
+	 //	lock the style table
+	 HLock ( ( Handle ) sourceStyles ) ;
+	 
+	 
+	 NSAppleEventDescriptor *formats = [NSAppleEventDescriptor listDescriptor];
+	 for ( int styleIndex = kASSourceStyleUncompiledText ;
+	 styleIndex < kASNumberOfSourceStyles;
+	 styleIndex ++ )
+	 {
+	 [formats insertDescriptor:parseStyle((*sourceStyles) + styleIndex) atIndex:0];
+	 }
+	 
+	 //	clear result code
+	err = noErr ;
+	
+	cleanup :
+	//	close the component connection
+	if ( ci != 0 ) {
+		CloseComponent ( ci ) ;
+		ci = 0 ;
 	}
 	
-	//	lock the style table
-	HLock ( ( Handle ) sourceStyles ) ;
-	
+	//	forget source styles
+
+	 if ( sourceStyles != 0 ) {
+	 DisposeHandle ( ( Handle ) sourceStyles ) ;
+	 sourceStyles = 0 ;
+	 }
+	return formats;
+}
+
++ (NSAppleEventDescriptor *)styles2
+{
+	OSStatus			err ;
+	ComponentInstance	ci = 0 ;
+	err = errOSAGeneralError ;
+	if ( ( ci = OpenDefaultComponent(kOSAComponentType, kAppleScriptSubtype)) == 0 )
+	{
+		goto cleanup;
+	}
+
+	CFArrayRef source_styles = NULL;
+	err = ASCopySourceAttributes(ci, &source_styles);
+	//NSLog([(NSArray *)source_styles description]);
 	NSAppleEventDescriptor *formats = [NSAppleEventDescriptor listDescriptor];
-	for ( int styleIndex = kASSourceStyleUncompiledText ;
-			  styleIndex < kASNumberOfSourceStyles;
-			  styleIndex ++ )
+	for ( int ind = 0; ind < CFArrayGetCount(source_styles); ind ++ )
 	{
-		[formats insertDescriptor:parseStyle((*sourceStyles) + styleIndex) atIndex:0];
+		[formats insertDescriptor:parseStyle2(CFArrayGetValueAtIndex(source_styles, ind)) atIndex:0];
 	}
-
-	//	clear result code
+	CFRelease(source_styles);
 	err = noErr ;
 
 cleanup :
@@ -203,11 +340,12 @@ cleanup :
 	}
 
 	//	forget source styles
+	/*
 	if ( sourceStyles != 0 ) {
 		DisposeHandle ( ( Handle ) sourceStyles ) ;
 		sourceStyles = 0 ;
 	}
-
+	*/
 	return formats;
 }
 

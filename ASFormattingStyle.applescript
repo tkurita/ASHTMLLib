@@ -42,6 +42,7 @@ on css_class(style_rec)
 	end try
 	--log a_key
 	--log "end css_class"
+	set a_key to call method "cssNameForStyleName:" of class "ASFormatting" with parameter a_key
 	return a_key
 end css_class
 
@@ -51,6 +52,7 @@ on as_css()
 	
 	script SelectorAdder
 		on do({a_name, format_rec})
+			set a_name to call method "cssNameForStyleName:" of class "ASFormatting" with parameter a_name
 			set a_rgb to RGBColor's make_with_decimal16(color of format_rec)
 			a_css's add_selector("." & a_name, {{"font-family", font of format_rec}, {"color", a_rgb's as_htmlcolor()}})
 			return true
@@ -75,10 +77,16 @@ on build_css()
 end build_css
 
 on make_from_setting()
+	(*
 	set style_records to call method "styles" of class "ASFormatting"
+	log style_records
+	*)
+	set style_records to call method "styles2" of class "ASFormatting"
 	--log style_records
+	set style_names to call method "styleNames" of class "ASFormatting"
 	script FormattingStyle
-		property _styleDict : XDict's make_with_lists(_style_names, style_records)
+		--property _styleDict : XDict's make_with_lists(_style_names, style_records)
+		property _styleDict : XDict's make_with_lists(style_names, style_records)
 	end script
 	return FormattingStyle
 end make_from_setting
