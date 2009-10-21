@@ -1,50 +1,9 @@
 #import "ASFormatting.h"
 #import <Carbon/Carbon.h>
 #import <OSAKit/OSAScript.h>
+#import "ASFormattingExtensions.h"
 
 #define useLog 0
-
-@interface NSAppleEventDescriptor (ASFormattingExtensions)
-
-+ (NSAppleEventDescriptor *)descriptorWithCGFloat:(CGFloat)aValue;
-
-@end
-
-@implementation NSAppleEventDescriptor (ASFormattingExtensions)
-
-+ (NSAppleEventDescriptor *)descriptorWithDouble:(double)aValue
-{
-	return [self descriptorWithDescriptorType:typeIEEE64BitFloatingPoint data:[NSData dataWithBytes:&aValue length: sizeof(aValue)]];
-}
-
-+ (NSAppleEventDescriptor *)descriptorWithFloat:(float)aValue
-{
-	return [self descriptorWithDescriptorType:typeIEEE32BitFloatingPoint data:[NSData dataWithBytes:&aValue length: sizeof(aValue)]];
-}
-
-+ (NSAppleEventDescriptor *)descriptorWithCGFloat:(CGFloat)aValue
-{
-#if CGFLOAT_IS_DOUBLE
-	return [self descriptorWithDouble:aValue];
-#else
-	return [self descriptorWithFloat:aValue];
-#endif
-}
-
-+ (NSAppleEventDescriptor *)descriptorWithColor:(NSColor *)aColor
-{
-	RGBColor qdColor;
-	CGFloat red, green, blue, alpha;
-	[aColor getRed:&red green:&green blue:&blue alpha:&alpha];
-	qdColor.red = (unsigned short)(red * 65535.0f);
-	qdColor.green = (unsigned short)(green * 65535.0f);
-	qdColor.blue = (unsigned short)(blue * 65535.0f);
-	return [NSAppleEventDescriptor descriptorWithDescriptorType:typeRGBColor 
-	                                                         bytes:&qdColor 
-	                                                        length:sizeof(RGBColor)];
-}
-
-@end
 
 static NSMutableDictionary *styleNamesToCSSNameTable = NULL;
 
@@ -160,7 +119,7 @@ static NSMutableDictionary *styleNamesToCSSNameTable = NULL;
 	err = errOSAGeneralError ;
 	NSString *err_msg = @"Fail to get style names.";
 	
-	if ( ( ci = OpenDefaultComponent ( kOSAComponentType, kAppleScriptSubtype ) ) == 0 )
+	if ( ( ci = OpenDefaultComponent(kOSAComponentType, kAppleScriptSubtype) ) == 0 )
 	{
 		err_msg = [NSString stringWithFormat:@"Fail to OpenDefaultComponent : %d", err];
 		goto cleanup;
@@ -249,6 +208,7 @@ NSAppleEventDescriptor *parseStyle2(const NSDictionary *styleDict)
 						  forKeyword:pColor];
 	return style_record;
 }
+
 + (NSAppleEventDescriptor *)styles
 {
 	OSStatus			err ;

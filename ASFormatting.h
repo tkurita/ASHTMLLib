@@ -5,4 +5,6 @@
 
 }
 
++ (NSAppleEventDescriptor *)styleNames;
+
 @end
