@@ -42,7 +42,6 @@ on css_class(style_rec)
 	end try
 	--log a_key
 	--log "end css_class"
-	set a_key to call method "cssNameForStyleName:" of class "ASFormatting" with parameter a_key
 	return a_key
 end css_class
 
@@ -52,7 +51,6 @@ on as_css()
 	
 	script SelectorAdder
 		on do({a_name, format_rec})
-			set a_name to call method "cssNameForStyleName:" of class "ASFormatting" with parameter a_name
 			set a_rgb to RGBColor's make_with_decimal16(color of format_rec)
 			a_css's add_selector("." & a_name, {{"font-family", font of format_rec}, {"color", a_rgb's as_htmlcolor()}})
 			return true
@@ -83,7 +81,24 @@ on make_from_setting()
 	*)
 	set style_records to call method "styles2" of class "ASFormatting"
 	--log style_records
-	set style_names to call method "styleNames" of class "ASFormatting"
+	--set style_names to call method "styleNames" of class "ASFormatting"
+	set style_names to contents of default entry "CSSClassNames" of user defaults
+	if length of style_records < length of style_names then
+		set style_names to items 1 thru (length of style_records) of style_names
+	end if
+	
+	repeat with n from 1 to length of style_names
+		if item n of style_names is "" then
+			set item n of style_names to "AppleScriptFormattingStyle" & (n as Unicode text)
+		end if
+	end repeat
+	
+	if length of style_records > length of style_names then
+		repeat with n from (length of style_names) + 1 to (length of style_records)
+			set end of style_names to "AppleScriptFormattingStyle" & (n as Unicode text)
+		end repeat
+	end if
+	
 	script FormattingStyle
 		--property _styleDict : XDict's make_with_lists(_style_names, style_records)
 		property _styleDict : XDict's make_with_lists(style_names, style_records)

@@ -5,31 +5,7 @@
 
 #define useLog 0
 
-static NSMutableDictionary *styleNamesToCSSNameTable = NULL;
-
 @implementation ASFormatting
-
-+ (NSString *)cssNameForStyleName:(NSString *)styleName
-{
-	NSMutableString *css_name = [styleNamesToCSSNameTable objectForKey:styleName];
-	if (!css_name || ![css_name length]) {
-		css_name = [styleName mutableCopy];
-		NSRange brarange = [css_name rangeOfString:@"("];
-		if (brarange.location != NSNotFound) {
-			if ([[css_name substringWithRange:NSMakeRange(brarange.location-1, 1)] isEqualToString:@" "]) {
-				brarange.location = brarange.location - 1;
-			}
-			brarange.length = [css_name length] - brarange.location;
-			[css_name deleteCharactersInRange:brarange];
-		}
-		[css_name replaceOccurrencesOfString:@" " withString:@"_" options:0 range:NSMakeRange(0,[css_name length])];
-		[css_name replaceOccurrencesOfString:@"," withString:@"" options:0 range:NSMakeRange(0,[css_name length])];
-		[css_name replaceOccurrencesOfString:@"." withString:@"" options:0 range:NSMakeRange(0,[css_name length])];
-		[styleNamesToCSSNameTable setObject:css_name forKey:styleName];
-	}
-	
-	return css_name;
-}
 
 + (NSString *)scriptSource:(NSString *)path
 {
@@ -103,17 +79,6 @@ static NSMutableDictionary *styleNamesToCSSNameTable = NULL;
 
 + (NSAppleEventDescriptor *)styleNames
 {
-	if (!styleNamesToCSSNameTable) {
-		[styleNamesToCSSNameTable release];
-	}
-	styleNamesToCSSNameTable = [[NSUserDefaults standardUserDefaults] objectForKey:@"styleNameToCSSNameTable"];
-	if (!styleNamesToCSSNameTable) {
-		styleNamesToCSSNameTable = [[styleNamesToCSSNameTable mutableCopy] retain];
-	} else {
-		styleNamesToCSSNameTable = [[NSMutableDictionary dictionary] retain];
-	}
-	
-	
 	OSStatus			err = noErr;
 	ComponentInstance	ci = 0 ;
 	err = errOSAGeneralError ;
