@@ -117,7 +117,6 @@ end process_paragraph
 
 on target_text()
 	if my _targetObj is not missing value then
-		--tell application "Script Editor"
 		tell application id "com.apple.ScriptEditor2"
 			return contents of contents of my _targetObj
 		end tell
