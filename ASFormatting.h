@@ -6,5 +6,6 @@
 }
 
 + (NSAppleEventDescriptor *)styleNames;
++ (NSArray *)sourceAttributes;
 
 @end

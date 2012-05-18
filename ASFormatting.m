@@ -237,6 +237,29 @@ NSAppleEventDescriptor *parseStyle2(const NSDictionary *styleDict)
 	return formats;
 }
 */
+
++ (NSArray *)sourceAttributes
+{
+	OSStatus			err ;
+	ComponentInstance	ci = 0 ;
+	err = errOSAGeneralError ;
+	if ( ( ci = OpenDefaultComponent(kOSAComponentType, kAppleScriptSubtype)) == 0 )
+	{
+		goto cleanup;
+	}
+	
+	CFArrayRef source_styles = NULL;
+	err = ASCopySourceAttributes(ci, &source_styles);
+	
+	cleanup :
+	//	close the component connection
+	if ( ci != 0 ) {
+		CloseComponent ( ci ) ;
+		ci = 0 ;
+	}
+	return [(NSArray *)source_styles autorelease];
+}
+
 + (NSAppleEventDescriptor *)styles2
 {
 	OSStatus			err ;
