@@ -263,7 +263,7 @@ NSAppleEventDescriptor *parseStyle2(const NSDictionary *styleDict)
 + (NSAppleEventDescriptor *)styles2
 {
 	
-	NSArray *souce_styles = [self sourceAttributes];
+	NSArray *source_styles = [self sourceAttributes];
 	if (!source_styles) return nil;
 	
 	NSAppleEventDescriptor *formats = [NSAppleEventDescriptor listDescriptor];
