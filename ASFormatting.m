@@ -19,7 +19,9 @@
 + (NSDictionary *)styleRunsForOSAScript:(OSAScript *)aScript
 {
 	NSAttributedString *styled_source = [aScript richTextSource];
-	
+	if (!styled_source) {
+		return nil;
+	}
 	NSMutableArray *attr_list = [NSMutableArray array];
 	NSMutableArray *code_list = [NSMutableArray array];
  	NSDictionary *attributes;
@@ -47,8 +49,9 @@
 {
 	NSDictionary *error_info = nil;
 	NSURL *url = [NSURL fileURLWithPath:path];
-	OSAScript *a_script = [[[OSAScript alloc] initWithContentsOfURL:url error:&error_info] autorelease];
-	return [self styleRunsForOSAScript:a_script];
+	OSAScript *a_script = a_script= [[OSAScript alloc] initWithContentsOfURL:url 
+																	   error:&error_info];
+	return [self styleRunsForOSAScript:[a_script autorelease]];
 }
 
 + (NSDictionary *)styleRunsForSource:(NSString *)source

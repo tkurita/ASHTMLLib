@@ -220,7 +220,11 @@ on process_file(a_path, prefer_inline)
 	--log "start process_file"
 	set style_runs to call method "styleRunsForFile:" of class "ASFormatting" with parameter a_path
 	--log style_runs
-	set my _target_text to |source| of style_runs
+	try
+		set my _target_text to |source| of style_runs
+	on error number -2753
+		error "Failed to obtain applescript code." number 1503
+	end try
 	--log "will end process_file"
 	return process_attribute_runs(code of style_runs, |font| of style_runs, |size| of style_runs, |color| of style_runs, prefer_inline)
 end process_file
