@@ -263,6 +263,13 @@ end is_launched
 
 on process_text(codeText, prefer_inline)
 	set style_runs to call method "styleRunsForSource:" of class "ASFormatting" with parameter codeText
+	set err_msg to missing value
+	try
+		set err_msg to style_runs's |OSAScriptErrorBriefMessageKey|
+	end try
+	if err_msg is not missing value then
+		error "Failed to compile script." number 1503
+	end if
 	return process_attribute_runs(code of style_runs, |font| of style_runs, |size| of style_runs, |color| of style_runs, prefer_inline)
 end process_text
 

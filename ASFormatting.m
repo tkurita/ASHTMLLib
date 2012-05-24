@@ -57,8 +57,11 @@
 + (NSDictionary *)styleRunsForSource:(NSString *)source
 {
 	OSAScript *a_script = [[[OSAScript alloc] initWithSource:source] autorelease];
-	NSDictionary *error_info;
+	NSDictionary *error_info = nil;
 	[a_script compileAndReturnError:&error_info];
+	if (error_info) {
+		return error_info;
+	}
 	NSAttributedString *styled_source = [a_script richTextSource];
 	
 	NSMutableArray *attr_list = [NSMutableArray array];
