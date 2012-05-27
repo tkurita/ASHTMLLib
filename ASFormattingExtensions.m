@@ -1,14 +1,18 @@
 #import "ASFormattingExtensions.h"
-#import "NSAppleEventDescriptor+NDScriptData.h"
 
 @implementation NSAppleEventDescriptor (ASFormattingExtensions)
 
-+ (NSAppleEventDescriptor *)descriptorWithCGFloat:(CGFloat)aValue
++ (NSAppleEventDescriptor *)descriptorWithCGFloat:(CGFloat)a_value
 {
+	descriptorWithDescriptorType:bytes:length:
 #if CGFLOAT_IS_DOUBLE
-	return [self descriptorWithDouble:aValue];
+	return [self descriptorWithDescriptorType:typeIEEE64BitFloatingPoint 
+										 bytes:&a_value 
+										length:sizeof(a_value)];
 #else
-	return [self descriptorWithFloat:aValue];
+	return [self descriptorWithDescriptorType:typeIEEE32BitFloatingPoint 
+										bytes:&a_value
+									   length:sizeof(a_value)];
 #endif
 }
 
