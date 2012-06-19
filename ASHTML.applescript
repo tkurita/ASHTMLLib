@@ -47,19 +47,65 @@ on css_as_unicode()
 	return my _formattingStyle's as_unicode()
 end css_as_unicode
 
+on markup_with_style_external(a_style, a_text)
+	log "start markup_with_style_external"
+	set class_name to my _formattingStyle's css_class(a_style)
+	
+	if class_name is not missing value then
+		set a_list to XList's make_with(get every paragraph of a_text)
+		script style_applyer
+			on do(a_line)
+				if my _white_charset's is_member(a_line) then
+					return contents of a_line
+				else
+					set a_span to HTMLElement's make_with("span", {{"class", class_name}})
+					a_span's push_content(contents of a_line)
+					return a_span's as_html()
+				end if
+			end do
+		end script
+		
+		set result_list to a_list's map(style_applyer)
+		set a_result to result_list's as_unicode_with(_linefeed)
+	else
+		set a_result to a_text's as_unicode()
+	end if
+	log "end markup_with_style_external"
+	return a_result
+end markup_with_style_external
+
+on markup_with_style_inline(a_style, a_text)
+	set style_text to my _formattingStyle's inline_stylesheet(a_style)
+	set a_list to XList's make_with(get every paragraph of a_text)
+	script style_applyer
+		on do(a_line)
+			if my _white_charset's is_member(a_line) then
+				return contents of a_line
+			else
+				set a_span to HTMLElement's make_with("span", {{"style", style_text}})
+				a_span's push_content(contents of a_line)
+				return a_span's as_html()
+			end if
+		end do
+	end script
+	set result_list to a_list's map(style_applyer)
+	return result_list's as_unicode_with(_linefeed)
+end markup_with_style_inline
+
 on markup_with_style(a_style, a_text)
 	--log a_text
 	local class_name
-	if _white_charset's is_member(a_text) then
+	if my _white_charset's is_member(a_text) then
 		return a_text's as_unicode()
 	end if
-	set class_name to _formattingStyle's css_class(a_style)
-	
+	set class_name to my _formattingStyle's css_class(a_style)
+	return my _markup_with_style(a_style, a_text)
+	(*
 	if class_name is not missing value then
 		set a_list to XList's make_with(get every paragraph of a_text)
 		script StyleApplyer
 			on do(a_line)
-				if _white_charset's is_member(a_line) then
+				if my _white_charset's is_member(a_line) then
 					return contents of a_line
 				else
 					set a_span to HTMLElement's make_with("span", {{"class", class_name}})
@@ -74,6 +120,7 @@ on markup_with_style(a_style, a_text)
 	else
 		return a_text's as_unicode()
 	end if
+	*)
 end markup_with_style
 
 on escape_characters(a_text)
@@ -121,7 +168,7 @@ on target_text()
 			return contents of contents of my _targetObj
 		end tell
 	end if
-	if _target_text is not missing value then
+	if my _target_text is not missing value then
 		return my _target_text
 	end if
 	return missing value
@@ -135,7 +182,7 @@ on process_attribute_runs(content_list, font_list, size_list, color_list, prefer
 	set color_list to XList's make_with(color_list)
 	
 	repeat while (content_list's count_items() > 0) -- remove empty lines in tail.
-		if _white_charset's is_member(content_list's item_at(-1)) then
+		if my _white_charset's is_member(content_list's item_at(-1)) then
 			repeat with a_container in {content_list, font_list, size_list, color_list}
 				a_container's delete_at(-1)
 			end repeat
@@ -236,12 +283,12 @@ on process_document(doc_ref)
 		set run_for_selection to ("" is not (contents of selection of doc_ref))
 		
 		if run_for_selection then
-			set _targetObj to a reference to selection of doc_ref
+			set my _targetObj to a reference to selection of doc_ref
 		else
-			set _targetObj to doc_ref
+			set my _targetObj to doc_ref
 		end if
 		
-		tell contents of contents of _targetObj
+		tell contents of contents of my _targetObj
 			set content_list to every attribute run
 			set font_list to font of every attribute run
 			set size_list to size of every attribute run
@@ -274,8 +321,8 @@ on process_text(codeText, prefer_inline)
 end process_text
 
 on process_text_with_editor(codeText)
-	if _formattingStyle is missing value then
-		set _formattingStyle to make_from_setting() of ASFormattingStyle
+	if my _formattingStyle is missing value then
+		set my _formattingStyle to make_from_setting() of ASFormattingStyle
 	end if
 	set docTitle to _temporary_doctitle
 	if is_launched() then
@@ -316,6 +363,17 @@ on do_debug()
 	--log a_text
 end do_debug
 
+on make
+	set self to me
+	script ASHTMLCore
+		property parent : self
+		property _formattingStyle : make_from_setting() of ASFormattingStyle
+		property _white_charset : XCharacterSet's make_whites_newlines()'s push("")
+		property _targetObj : missing value
+		property _target_text : missing value
+		property _markup_with_style : markup_with_style_external
+	end script
+end make
 (*
 on run
 	return debug()
