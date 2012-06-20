@@ -368,14 +368,15 @@ on use_inline_css()
 end use_inline_css
 
 on make
-	set self to me
+	set a_class to me
 	script ASHTMLCore
-		property parent : self
+		property parent : a_class
 		property _formattingStyle : make_from_setting() of ASFormattingStyle
 		property _white_charset : XCharacterSet's make_whites_newlines()'s push("")
 		property _targetObj : missing value
 		property _target_text : missing value
 		property _markup_with_style : markup_with_style_classnames
+		property _wrapWithBlock : my _wrapWithBlock
 	end script
 end make
 (*
