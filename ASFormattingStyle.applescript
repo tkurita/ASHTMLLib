@@ -31,7 +31,7 @@ end script
 
 on inline_stylesheet(style_rec)
 	set a_rgb to RGBColor's make_with_decimal16(color of style_rec)
-	return "font-family:" & (font of format_rec) & ";color:" & a_rgb's as_htmlcolor()
+	return "font-family:" & (font of style_rec) & ";color:" & a_rgb's as_htmlcolor()
 end inline_stylesheet
 
 on css_class(style_rec)

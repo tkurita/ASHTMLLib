@@ -47,7 +47,7 @@ on css_as_unicode()
 	return my _formattingStyle's as_unicode()
 end css_as_unicode
 
-on markup_with_style_external(a_style, a_text)
+on markup_with_style_classnames(a_style, a_text)
 	log "start markup_with_style_external"
 	set class_name to my _formattingStyle's css_class(a_style)
 	
@@ -72,7 +72,7 @@ on markup_with_style_external(a_style, a_text)
 	end if
 	log "end markup_with_style_external"
 	return a_result
-end markup_with_style_external
+end markup_with_style_classnames
 
 on markup_with_style_inline(a_style, a_text)
 	set style_text to my _formattingStyle's inline_stylesheet(a_style)
@@ -363,6 +363,10 @@ on do_debug()
 	--log a_text
 end do_debug
 
+on use_inline_css()
+	set my _markup_with_style to markup_with_style_inline
+end use_inline_css
+
 on make
 	set self to me
 	script ASHTMLCore
@@ -371,7 +375,7 @@ on make
 		property _white_charset : XCharacterSet's make_whites_newlines()'s push("")
 		property _targetObj : missing value
 		property _target_text : missing value
-		property _markup_with_style : markup_with_style_external
+		property _markup_with_style : markup_with_style_classnames
 	end script
 end make
 (*
