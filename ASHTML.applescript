@@ -48,7 +48,7 @@ on css_as_unicode()
 end css_as_unicode
 
 on markup_with_style_classnames(a_style, a_text)
-	log "start markup_with_style_external"
+	--log "start markup_with_style_external"
 	set class_name to my _formattingStyle's css_class(a_style)
 	
 	if class_name is not missing value then
@@ -70,7 +70,7 @@ on markup_with_style_classnames(a_style, a_text)
 	else
 		set a_result to a_text's as_unicode()
 	end if
-	log "end markup_with_style_external"
+	--log "end markup_with_style_external"
 	return a_result
 end markup_with_style_classnames
 
