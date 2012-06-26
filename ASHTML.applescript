@@ -100,27 +100,6 @@ on markup_with_style(a_style, a_text)
 	end if
 	set class_name to my _formattingStyle's css_class(a_style)
 	return my _markup_with_style(a_style, a_text)
-	(*
-	if class_name is not missing value then
-		set a_list to XList's make_with(get every paragraph of a_text)
-		script StyleApplyer
-			on do(a_line)
-				if my _white_charset's is_member(a_line) then
-					return contents of a_line
-				else
-					set a_span to HTMLElement's make_with("span", {{"class", class_name}})
-					a_span's push_content(contents of a_line)
-					return a_span's as_html()
-				end if
-			end do
-		end script
-		
-		set result_list to a_list's map(StyleApplyer)
-		return result_list's as_unicode_with(_linefeed)
-	else
-		return a_text's as_unicode()
-	end if
-	*)
 end markup_with_style
 
 on escape_characters(a_text)
