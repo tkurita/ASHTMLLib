@@ -1,5 +1,21 @@
 #import "ASFormattingExtensions.h"
 
+
+@implementation NSColor (ASFormattingExtensions)
+
+- (NSArray *)rgbArray
+{
+	CGFloat red, green, blue, alpha;
+	[self getRed:&red green:&green blue:&blue alpha:&alpha];
+	NSArray *rgb = [NSArray arrayWithObjects:
+					[NSNumber numberWithUnsignedShort:(unsigned short)(red * 65535.0f)],
+					[NSNumber numberWithUnsignedShort:(unsigned short)(green * 65535.0f)],
+					[NSNumber numberWithUnsignedShort:(unsigned short)(blue * 65535.0f)], nil];
+	return rgb;
+}
+
+@end
+
 @implementation NSAppleEventDescriptor (ASFormattingExtensions)
 
 + (NSAppleEventDescriptor *)descriptorWithCGFloat:(CGFloat)a_value

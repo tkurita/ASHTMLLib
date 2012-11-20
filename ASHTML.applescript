@@ -48,7 +48,7 @@ on css_as_unicode()
 end css_as_unicode
 
 on markup_with_style_classnames(a_style, a_text)
-	--log "start markup_with_style_external"
+	--log "start markup_with_style_classname"
 	set class_name to my _formattingStyle's css_class(a_style)
 	
 	if class_name is not missing value then
@@ -70,7 +70,7 @@ on markup_with_style_classnames(a_style, a_text)
 	else
 		set a_result to a_text's as_unicode()
 	end if
-	--log "end markup_with_style_external"
+	--log "end markup_with_style_classname"
 	return a_result
 end markup_with_style_classnames
 
@@ -154,12 +154,11 @@ on target_text()
 end target_text
 
 on process_attribute_runs(content_list, font_list, size_list, color_list, prefer_inline)
-	--log "start process_attribute_runs"
+	-- log "start process_attribute_runs"
 	set content_list to XList's make_with(content_list)
 	set font_list to XList's make_with(font_list)
 	set size_list to XList's make_with(size_list)
 	set color_list to XList's make_with(color_list)
-	
 	repeat while (content_list's count_items() > 0) -- remove empty lines in tail.
 		if my _white_charset's is_member(content_list's item_at(-1)) then
 			repeat with a_container in {content_list, font_list, size_list, color_list}
@@ -177,18 +176,18 @@ on process_attribute_runs(content_list, font_list, size_list, color_list, prefer
 	
 	set out_list to make XList
 	set is_new_line to true
+	-- log "before second loop"
 	repeat with i from 1 to n_attr
 		--local a_text
-		set a_text to XText's make_with(content_list's item_at(i))
+		set a_text to XText's make_with(content_list's item_at(i) as text)
 		set a_text to my escape_characters(a_text)
 		if (not is_new_line) and (length of a_text > 1) and (a_text's starts_with(_linefeed)) then
 			set is_new_line to true
 		end if
-		
-		set a_style to {font:font_list's item_at(i), size:size_list's item_at(i), color:color_list's item_at(i)}
+		set a_style to {font:font_list's item_at(i) as text, size:size_list's item_at(i) as integer, color:color_list's item_at(i) as list}
 		set text_list to make XList
 		repeat with a_line in every paragraph of a_text
-			--local indent_text
+			
 			set a_line to XText's make_with(a_line)
 			if is_new_line then
 				set {indent_text, a_line} to a_line's strip_beginning()
@@ -208,6 +207,7 @@ on process_attribute_runs(content_list, font_list, size_list, color_list, prefer
 		out_list's push(taged_text)
 		set is_new_line to (taged_text ends with _linefeed)
 	end repeat
+	-- log "after second loop"
 	set out_text to out_list's as_unicode_with("")
 	set source_list to XList's make_with(get every paragraph of out_text)
 	set n_par to count source_list
@@ -224,14 +224,15 @@ on process_attribute_runs(content_list, font_list, size_list, color_list, prefer
 		end if
 		out_html's set_element_name(a_name)
 	end if
+	
 	script ParProcessor
-		on do(a_text)
-			out_html's push_content(process_paragraph(contents of a_text))
+		on do(a_text, sender)
+			out_html's push_content(process_paragraph(a_text))
 			return true
 		end do
 	end script
 	if wrapWithDiv then
-		source_list's each(ParProcessor)
+		source_list's enumerate(ParProcessor)
 	else
 		out_html's push_content(out_text)
 	end if
@@ -239,20 +240,23 @@ on process_attribute_runs(content_list, font_list, size_list, color_list, prefer
 	if out_contents's item_at(-1) is my _brTag then
 		out_contents's delete_at(-1)
 	end if
+	-- log "end process_attribute_runs"
 	return out_html
 end process_attribute_runs
 
 on process_file(a_path, prefer_inline)
-	--log "start process_file"
-	set style_runs to call method "styleRunsForFile:" of class "ASFormatting" with parameter a_path
-	--log style_runs
+	-- log "start process_file"
+	tell current application's class "ASFormatting"
+		set style_runs to styleRunsForFile_(a_path)
+	end tell
 	try
 		set my _target_text to |source| of style_runs
 	on error number -2753
 		error "Failed to obtain applescript code." number 1503
 	end try
 	--log "will end process_file"
-	return process_attribute_runs(code of style_runs, |font| of style_runs, |size| of style_runs, |color| of style_runs, prefer_inline)
+	return process_attribute_runs(code of style_runs as list, |font| of style_runs as list, |size| of style_runs, Å 
+		|color| of style_runs as list, prefer_inline)
 end process_file
 
 on process_document(doc_ref)
@@ -288,7 +292,10 @@ on is_launched()
 end is_launched
 
 on process_text(codeText, prefer_inline)
-	set style_runs to call method "styleRunsForSource:" of class "ASFormatting" with parameter codeText
+	-- log "start process_text in ASHTML"
+	tell current application's class "ASFormatting"
+		set style_runs to its styleRunsForSource_(codeText)
+	end tell
 	set err_msg to missing value
 	try
 		set err_msg to style_runs's |OSAScriptErrorBriefMessageKey|
@@ -296,7 +303,9 @@ on process_text(codeText, prefer_inline)
 	if err_msg is not missing value then
 		error "Failed to compile script." number 1503
 	end if
-	return process_attribute_runs(code of style_runs, |font| of style_runs, |size| of style_runs, |color| of style_runs, prefer_inline)
+	--log "before process_attribute_runs"
+	return process_attribute_runs(code of style_runs as list, |font| of style_runs as list, |size| of style_runs, Å 
+		|color| of style_runs as list, prefer_inline)
 end process_text
 
 on process_text_with_editor(codeText)
@@ -350,7 +359,7 @@ on make
 	set a_class to me
 	script ASHTMLCore
 		property parent : a_class
-		property _formattingStyle : make_from_setting() of ASFormattingStyle
+		property _formattingStyle : ASFormattingStyle's make_from_setting()
 		property _white_charset : XCharacterSet's make_whites_newlines()'s push("")
 		property _targetObj : missing value
 		property _target_text : missing value

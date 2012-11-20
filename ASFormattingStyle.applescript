@@ -15,16 +15,13 @@ script StyleComparator
 	end is_similar_color
 	
 	on do(v1, v2)
+		-- log "start do of StyleComparator"
 		set a_result to v1 is v2
 		if a_result then return true
-		(*
-		if not (font of v1 is font of v2) then
-			return false
-		end if
-		*)
 		if not (size of v1 is size of v1) then
 			return false
 		end if
+		--log "end do of StyleComparator"
 		return is_similar_color(color of v1, color of v2)
 	end do
 end script
@@ -80,32 +77,33 @@ on build_css()
 end build_css
 
 on make_from_setting()
-	(*
-	set style_records to call method "styles" of class "ASFormatting"
-	log style_records
-	*)
-	set style_records to call method "styles2" of class "ASFormatting"
-	--log style_records
-	--set style_names to call method "styleNames" of class "ASFormatting"
-	set style_names to contents of default entry "CSSClassNames" of user defaults
+	--log "start make_from_setting in ASFormattingStyle"
+	tell current application's class "ASFormatting"
+		set style_records to its styles3() as list
+	end tell
+	repeat with a_rec in style_records
+		set contents of a_rec to {font:|font| of a_rec, size:|size| of a_rec, color:|color| of a_rec}
+	end repeat
+	tell current application's class "NSUserDefaults"'s standardUserDefaults()
+		set style_names to its arrayForKey_("CSSClassNames") as list
+	end tell
 	if length of style_records < length of style_names then
 		set style_names to items 1 thru (length of style_records) of style_names
 	end if
-	
 	repeat with n from 1 to length of style_names
-		if item n of style_names is "" then
+		set a_name to item n of style_names as text
+		if a_name is "" then
 			set item n of style_names to "AppleScriptFormattingStyle" & (n as Unicode text)
+		else
+			set item n of style_names to a_name
 		end if
 	end repeat
-	
 	if length of style_records > length of style_names then
 		repeat with n from (length of style_names) + 1 to (length of style_records)
 			set end of style_names to "AppleScriptFormattingStyle" & (n as Unicode text)
 		end repeat
 	end if
-	
 	script FormattingStyle
-		--property _styleDict : XDict's make_with_lists(_style_names, style_records)
 		property _styleDict : XDict's make_with_lists(style_names, style_records)
 	end script
 	return FormattingStyle
@@ -123,13 +121,13 @@ on make_from_plist()
 			set a_list to XList's make_with_text(a_text, ";")
 			set a_rgb_list to XList's make_with_text(a_list's item_at(4), space)
 			script TextToInteger
-				on do(a_value)
+				on do(a_value, sender)
 					set contents of a_value to (a_value as integer)
 					return true
 				end do
 			end script
 			
-			a_rgb_list's each(TextToInteger)
+			a_rgb_list's enumerate(TextToInteger)
 			
 			return {font:a_list's item_at(1), size:((a_list's item_at(3)) as integer), color:a_rgb_list's list_ref()}
 		end do

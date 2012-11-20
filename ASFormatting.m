@@ -78,7 +78,7 @@
 	}
 	NSArray *font_names = [attr_list valueForKeyPath:@"NSFont.fontName"];
 	NSArray *font_sizes = [attr_list valueForKeyPath:@"NSFont.pointSize"];
-	NSArray *font_colors = [attr_list valueForKey:@"NSColor"];
+	NSArray *font_colors = [attr_list valueForKeyPath:@"NSColor.rgbArray"];
 	return [NSDictionary dictionaryWithObjectsAndKeys:font_names, @"font", 
 			font_sizes, @"size", font_colors, @"color",code_list, @"code", nil];
 }
@@ -112,7 +112,7 @@ cleanup:
 	}
 	
 	if (err != noErr) {
-		[NSException raise:@"ASFormattingException" format:err_msg];
+		[NSException raise:@"ASFormattingException" format:@"%@", err_msg];
 	}
 	return [names autorelease];
 }
@@ -180,6 +180,31 @@ NSAppleEventDescriptor *parseStyle2(const NSDictionary *styleDict)
 	 [NSAppleEventDescriptor descriptorWithColor:[styleDict objectForKey:@"NSColor"]]
 						  forKeyword:pColor];
 	return style_record;
+}
+
+NSDictionary *parseStyle3(const NSDictionary *styleDict)
+{
+	NSString *font = [[styleDict objectForKey:@"NSFont"] fontName];
+#if CGFLOAT_IS_DOUBLE
+	NSNumber *size = [NSNumber numberWithDouble:[[styleDict objectForKey:@"NSFont"] 
+												 pointSize]];
+#else
+	NSNumber *size = [NSNumber numberWithFloat:[[styleDict objectForKey:@"NSFont"] 
+												 pointSize]];
+#endif
+	/*
+	CGFloat red, green, blue, alpha;
+	[[styleDict objectForKey:@"NSColor"]
+		getRed:&red green:&green blue:&blue alpha:&alpha];
+	NSArray *rgb = [NSArray arrayWithObjects:
+					[NSNumber numberWithUnsignedShort:(unsigned short)(red * 65535.0f)],
+					[NSNumber numberWithUnsignedShort:(unsigned short)(green * 65535.0f)],
+					[NSNumber numberWithUnsignedShort:(unsigned short)(blue * 65535.0f)], nil];
+	 */
+	NSArray *rgb = [[styleDict objectForKey:@"NSColor"] rgbArray];
+	NSDictionary *result = [NSDictionary dictionaryWithObjectsAndKeys:
+							font, @"font", size, @"size", rgb, @"color", nil];
+	return result;
 }
 
 /*
@@ -271,12 +296,26 @@ NSAppleEventDescriptor *parseStyle2(const NSDictionary *styleDict)
 	
 	NSArray *source_styles = [self sourceAttributes];
 	if (!source_styles) return nil;
-	
 	NSAppleEventDescriptor *formats = [NSAppleEventDescriptor listDescriptor];
 	for ( int ind = 0; ind < [source_styles count]; ind ++ )
 	{
 		[formats insertDescriptor:parseStyle2([source_styles objectAtIndex:ind]) 
 						  atIndex:0];
+	}
+	return formats;
+}
+
++ (NSArray *)styles3
+{
+	
+	NSArray *source_styles = [self sourceAttributes];
+	if (!source_styles) return nil;
+	
+	NSMutableArray *formats = [NSMutableArray arrayWithCapacity:[source_styles count]];
+	
+	for ( int ind = 0; ind < [source_styles count]; ind ++ )
+	{
+		[formats addObject:parseStyle3([source_styles objectAtIndex:ind])];
 	}
 	return formats;
 }
