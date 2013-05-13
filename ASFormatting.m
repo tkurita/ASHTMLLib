@@ -36,7 +36,7 @@
 	}
 	NSArray *font_names = [attr_list valueForKeyPath:@"NSFont.fontName"];
 	NSArray *font_sizes = [attr_list valueForKeyPath:@"NSFont.pointSize"];
-	NSArray *font_colors = [attr_list valueForKey:@"NSColor"];
+	NSArray *font_colors = [attr_list valueForKeyPath:@"NSColor.rgbArray"];
 #if useLog
 	NSLog([attr_list description]);
 #endif

@@ -154,7 +154,7 @@ on target_text()
 end target_text
 
 on process_attribute_runs(content_list, font_list, size_list, color_list, prefer_inline)
-	-- log "start process_attribute_runs"
+	--log "start process_attribute_runs"
 	set content_list to XList's make_with(content_list)
 	set font_list to XList's make_with(font_list)
 	set size_list to XList's make_with(size_list)
@@ -168,7 +168,7 @@ on process_attribute_runs(content_list, font_list, size_list, color_list, prefer
 			exit repeat
 		end if
 	end repeat
-	
+	--log "after first loop"
 	set n_attr to content_list's count_items()
 	if n_attr is 0 then
 		error "No contents in passed arguments to ASHTML." number 1480
@@ -176,7 +176,7 @@ on process_attribute_runs(content_list, font_list, size_list, color_list, prefer
 	
 	set out_list to make XList
 	set is_new_line to true
-	-- log "before second loop"
+	--log "before second loop"
 	repeat with i from 1 to n_attr
 		--local a_text
 		set a_text to XText's make_with(content_list's item_at(i) as text)
@@ -207,7 +207,7 @@ on process_attribute_runs(content_list, font_list, size_list, color_list, prefer
 		out_list's push(taged_text)
 		set is_new_line to (taged_text ends with _linefeed)
 	end repeat
-	-- log "after second loop"
+	--log "after second loop"
 	set out_text to out_list's as_unicode_with("")
 	set source_list to XList's make_with(get every paragraph of out_text)
 	set n_par to count source_list
@@ -240,12 +240,12 @@ on process_attribute_runs(content_list, font_list, size_list, color_list, prefer
 	if out_contents's item_at(-1) is my _brTag then
 		out_contents's delete_at(-1)
 	end if
-	-- log "end process_attribute_runs"
+	--log "end process_attribute_runs"
 	return out_html
 end process_attribute_runs
 
 on process_file(a_path, prefer_inline)
-	-- log "start process_file"
+	--log "start process_file"
 	tell current application's class "ASFormatting"
 		set style_runs to styleRunsForFile_(a_path)
 	end tell
@@ -255,8 +255,7 @@ on process_file(a_path, prefer_inline)
 		error "Failed to obtain applescript code." number 1503
 	end try
 	--log "will end process_file"
-	return process_attribute_runs(code of style_runs as list, |font| of style_runs as list, |size| of style_runs, Å 
-		|color| of style_runs as list, prefer_inline)
+	return process_attribute_runs(code of style_runs as list, |font| of style_runs as list, |size| of style_runs as list, |color| of style_runs as list, prefer_inline)
 end process_file
 
 on process_document(doc_ref)
@@ -304,8 +303,7 @@ on process_text(codeText, prefer_inline)
 		error "Failed to compile script." number 1503
 	end if
 	--log "before process_attribute_runs"
-	return process_attribute_runs(code of style_runs as list, |font| of style_runs as list, |size| of style_runs, Å 
-		|color| of style_runs as list, prefer_inline)
+	return process_attribute_runs(code of style_runs as list, |font| of style_runs as list, |size| of style_runs as list, |color| of style_runs as list, prefer_inline)
 end process_text
 
 on process_text_with_editor(codeText)
