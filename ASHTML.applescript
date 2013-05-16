@@ -249,6 +249,9 @@ on process_file(a_path, prefer_inline)
 	tell current application's class "ASFormatting"
 		set style_runs to styleRunsForFile_(a_path)
 	end tell
+	if style_runs is missing value then
+		error "Failed to obtain applescript code." number 1503
+	end if
 	try
 		set my _target_text to |source| of style_runs
 	on error number -2753
