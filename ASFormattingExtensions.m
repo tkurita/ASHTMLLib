@@ -7,10 +7,9 @@
 {
 	CGFloat red, green, blue, alpha;
 	[self getRed:&red green:&green blue:&blue alpha:&alpha];
-	NSArray *rgb = [NSArray arrayWithObjects:
-					[NSNumber numberWithUnsignedShort:(unsigned short)(red * 65535.0f)],
-					[NSNumber numberWithUnsignedShort:(unsigned short)(green * 65535.0f)],
-					[NSNumber numberWithUnsignedShort:(unsigned short)(blue * 65535.0f)], nil];
+	NSArray *rgb = @[@((unsigned short)(red * 65535.0f)),
+					@((unsigned short)(green * 65535.0f)),
+					@((unsigned short)(blue * 65535.0f))];
 	return rgb;
 }
 

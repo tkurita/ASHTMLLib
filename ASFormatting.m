@@ -40,9 +40,9 @@
 #if useLog
 	NSLog([attr_list description]);
 #endif
-	return [NSDictionary dictionaryWithObjectsAndKeys:font_names, @"font", 
-			font_sizes, @"size", font_colors, @"color",code_list, @"code", 
-			[styled_source string], @"source", nil];
+	return @{@"font": font_names, 
+			@"size": font_sizes, @"color": font_colors,@"code": code_list, 
+			@"source": [styled_source string]};
 }
 
 + (NSDictionary *)styleRunsForFile:(NSString *)path
@@ -83,8 +83,8 @@
 	NSArray *font_names = [attr_list valueForKeyPath:@"NSFont.fontName"];
 	NSArray *font_sizes = [attr_list valueForKeyPath:@"NSFont.pointSize"];
 	NSArray *font_colors = [attr_list valueForKeyPath:@"NSColor.rgbArray"];
-	return [NSDictionary dictionaryWithObjectsAndKeys:font_names, @"font", 
-			font_sizes, @"size", font_colors, @"color",code_list, @"code", nil];
+	return @{@"font": font_names, 
+			@"size": font_sizes, @"color": font_colors,@"code": code_list};
 }
 
 + (NSAppleEventDescriptor *)styleNames
@@ -117,28 +117,28 @@ NSAppleEventDescriptor *parseStyle2(const NSDictionary *styleDict)
 	//font name
 	
 	[style_record setParamDescriptor:[NSAppleEventDescriptor descriptorWithString:
-									  [[styleDict objectForKey:@"NSFont"] fontName]]
+									  [styleDict[@"NSFont"] fontName]]
 						  forKeyword:'fonO']; // font is not pFont in AppleScript Studio
 	
 	//font size
 	[style_record setParamDescriptor: 
 	 [NSAppleEventDescriptor descriptorWithCGFloat:
-	  [[styleDict objectForKey:@"NSFont"] pointSize]]
+	  [styleDict[@"NSFont"] pointSize]]
 						  forKeyword:pSize];
 	
 	//color
 	[style_record setParamDescriptor:
-	 [NSAppleEventDescriptor descriptorWithColor:[styleDict objectForKey:@"NSColor"]]
+	 [NSAppleEventDescriptor descriptorWithColor:styleDict[@"NSColor"]]
 						  forKeyword:pColor];
 	return style_record;
 }
 
 NSDictionary *parseStyle3(const NSDictionary *styleDict)
 {
-	NSString *font = [[styleDict objectForKey:@"NSFont"] fontName];
+	NSString *font = [styleDict[@"NSFont"] fontName];
 #if CGFLOAT_IS_DOUBLE
-	NSNumber *size = [NSNumber numberWithDouble:[[styleDict objectForKey:@"NSFont"] 
-												 pointSize]];
+	NSNumber *size = @([styleDict[@"NSFont"] 
+												 pointSize]);
 #else
 	NSNumber *size = [NSNumber numberWithFloat:[[styleDict objectForKey:@"NSFont"] 
 												 pointSize]];
@@ -152,9 +152,8 @@ NSDictionary *parseStyle3(const NSDictionary *styleDict)
 					[NSNumber numberWithUnsignedShort:(unsigned short)(green * 65535.0f)],
 					[NSNumber numberWithUnsignedShort:(unsigned short)(blue * 65535.0f)], nil];
 	 */
-	NSArray *rgb = [[styleDict objectForKey:@"NSColor"] rgbArray];
-	NSDictionary *result = [NSDictionary dictionaryWithObjectsAndKeys:
-							font, @"font", size, @"size", rgb, @"color", nil];
+	NSArray *rgb = [styleDict[@"NSColor"] rgbArray];
+	NSDictionary *result = @{@"font": font, @"size": size, @"color": rgb};
 	return result;
 }
 
@@ -187,7 +186,7 @@ NSDictionary *parseStyle3(const NSDictionary *styleDict)
 	NSAppleEventDescriptor *formats = [NSAppleEventDescriptor listDescriptor];
 	for ( int ind = 0; ind < [source_styles count]; ind ++ )
 	{
-		[formats insertDescriptor:parseStyle2([source_styles objectAtIndex:ind]) 
+		[formats insertDescriptor:parseStyle2(source_styles[ind]) 
 						  atIndex:0];
 	}
 	return formats;
@@ -203,7 +202,7 @@ NSDictionary *parseStyle3(const NSDictionary *styleDict)
 	
 	for ( int ind = 0; ind < [source_styles count]; ind ++ )
 	{
-		[formats addObject:parseStyle3([source_styles objectAtIndex:ind])];
+		[formats addObject:parseStyle3(source_styles[ind])];
 	}
 	return formats;
 }
