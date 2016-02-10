@@ -10,8 +10,8 @@
 + (NSString *)scriptSource:(NSString *)path
 {
 	NSDictionary *error_info;
-	NSAppleScript *a_script = [[[NSAppleScript alloc] initWithContentsOfURL:
-								[NSURL fileURLWithPath:path] error:&error_info] autorelease];
+	NSAppleScript *a_script = [[NSAppleScript alloc] initWithContentsOfURL:
+								[NSURL fileURLWithPath:path] error:&error_info];
 	
 	return [a_script source];
 }
@@ -55,12 +55,12 @@
         NSLog(@"Error in styleRunsForFile %@, path : %@", error_info, path);
         return nil;
     }
-	return [self styleRunsForOSAScript:[a_script autorelease]];
+	return [self styleRunsForOSAScript:a_script];
 }
 
 + (NSDictionary *)styleRunsForSource:(NSString *)source
 {
-	OSAScript *a_script = [[[OSAScript alloc] initWithSource:source] autorelease];
+	OSAScript *a_script = [[OSAScript alloc] initWithSource:source];
 	NSDictionary *error_info = nil;
 	[a_script compileAndReturnError:&error_info];
 	if (error_info) {
@@ -108,7 +108,7 @@
 	}
 	
 	NSAppleEventDescriptor *names = [[NSAppleEventDescriptor alloc]initWithAEDescNoCopy:&aestyle_names];
-	return [names autorelease];
+	return names;
 }
 
 NSAppleEventDescriptor *parseStyle2(const NSDictionary *styleDict)
@@ -175,7 +175,7 @@ NSDictionary *parseStyle3(const NSDictionary *styleDict)
         return nil;
     }
     
-	return [(NSArray *)source_styles autorelease];
+	return (NSArray *)CFBridgingRelease(source_styles);
 }
 
 + (NSAppleEventDescriptor *)styles2
