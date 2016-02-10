@@ -51,6 +51,10 @@
 	NSURL *url = [NSURL fileURLWithPath:path];
 	OSAScript *a_script = a_script= [[OSAScript alloc] initWithContentsOfURL:url 
 																	   error:&error_info];
+    if (error_info) {
+        NSLog(@"Error in styleRunsForFile %@, path : %@", error_info, path);
+        return nil;
+    }
 	return [self styleRunsForOSAScript:[a_script autorelease]];
 }
 
@@ -88,77 +92,24 @@
 	OSStatus			err = noErr;
 	ComponentInstance	ci = 0 ;
 	err = errOSAGeneralError ;
-	NSString *err_msg = @"Fail to get style names.";
 	
-	if ( ( ci = OpenDefaultComponent(kOSAComponentType, kAppleScriptSubtype) ) == 0 )
+    if ((ci = [[OSALanguage languageForName:@"AppleScript"] componentInstance]) ==0 )
 	{
-		err_msg = [NSString stringWithFormat:@"Fail to OpenDefaultComponent : %d", err];
-		goto cleanup;
+        [NSException raise:@"ASFormattingException" format:@"%@",
+                    @"Fail to obtain componentInstance in styleNames"];
+		return nil;
 	}
 	
 	AEDescList aestyle_names;
 	if ((err = ASGetSourceStyleNames(ci, kOSAModeNull, &aestyle_names)) != noErr) {
-		err_msg = [NSString stringWithFormat:@"Fail to ASGetSourceStyleNames : %d", err];
-		goto cleanup;
+        [NSException raise:@"ASFormattingException" format:@"Fail to ASGetSourceStyleNames : %d", err];
+        return nil;
+
 	}
 	
 	NSAppleEventDescriptor *names = [[NSAppleEventDescriptor alloc]initWithAEDescNoCopy:&aestyle_names];
-	err = noErr;
-	
-cleanup:
-	if ( ci != 0 ) {
-		CloseComponent ( ci ) ;
-		ci = 0 ;
-	}
-	
-	if (err != noErr) {
-		[NSException raise:@"ASFormattingException" format:@"%@", err_msg];
-	}
 	return [names autorelease];
 }
-
-/*
-NSAppleEventDescriptor *parseStyle(const STElement* inStyle)
-{
-	OSStatus	err ;
-	NSString *err_msg;
-	
-	NSAppleEventDescriptor *style_record = [NSAppleEventDescriptor recordDescriptor];
-	//font name
-	CGFontRef font_ref;
-	FMFontStyle o_style;
-	if ((err = FMFontGetCGFontRefFromFontFamilyInstance(inStyle->stFont, inStyle->stFace, &font_ref, &o_style)) !=noErr) {
-		err_msg = [NSString stringWithFormat:@"Fail to FMFontGetCGFontRefFromFontFamilyInstance : %d", err];
-		goto cleanup;	
-	}
-	NSString * font_name = (NSString *)CGFontCopyPostScriptName(font_ref);
-	[style_record setParamDescriptor:[NSAppleEventDescriptor descriptorWithString:[font_name autorelease]]
-						  forKeyword:'fonO']; // font is not pFont in AppleScript Studio
-	
-	// [style_record setParamDescriptor:[NSAppleEventDescriptor descriptorWithInt32:[font_name autorelease]]
-	// forKeyword:pFont];
-	 
-	
-	//font size
-	[style_record setParamDescriptor:[NSAppleEventDescriptor descriptorWithInt32:inStyle->stSize]
-						  forKeyword:pSize];
-	
-	//color
-	[style_record setParamDescriptor:
-	 [NSAppleEventDescriptor descriptorWithDescriptorType:typeRGBColor
-													bytes:&inStyle->stColor length:sizeof(inStyle->stColor)]
-						  forKeyword:pColor];
-	
-	err = noErr;
-	
-cleanup:
-	if (err != noErr) {
-		[NSException raise:@"ASFormattingException" format:err_msg];
-	}
-	
-	return style_record;
-}
-*/
 
 NSAppleEventDescriptor *parseStyle2(const NSDictionary *styleDict)
 {
@@ -207,87 +158,24 @@ NSDictionary *parseStyle3(const NSDictionary *styleDict)
 	return result;
 }
 
-/*
-+ (NSAppleEventDescriptor *)styles
-{
-	OSStatus			err ;
-	ComponentInstance	ci = 0 ;
-	STHandle			sourceStyles = 0 ;
-	err = errOSAGeneralError ;
-	if ( ( ci = OpenDefaultComponent(kOSAComponentType, kAppleScriptSubtype)) == 0 )
-	{
-		goto cleanup;
-	}
-	//	get AppleScript formats as a TextEdit style table
-	if ( ( err = ASGetSourceStyles(ci, &sourceStyles)) != noErr ) {
-		goto cleanup ;
-	}
-	
-	//	sanity check: make sure the style table is non-null
-	err = memFullErr ;
-	if ( sourceStyles == 0 )
-	{
-		goto cleanup ;
-	}
-	
-	//	sanity check: make sure the style table is big enough to
-	//	contain all the AppleScript styles
-	if ( GetHandleSize ((Handle)sourceStyles) < kASNumberOfSourceStyles * sizeof(STElement))
-	{
-		goto cleanup ;
-	}
-	
-	//	lock the style table
-	HLock ( ( Handle ) sourceStyles ) ;
-	
-	
-	NSAppleEventDescriptor *formats = [NSAppleEventDescriptor listDescriptor];
-	for ( int styleIndex = kASSourceStyleUncompiledText ;
-		 styleIndex < kASNumberOfSourceStyles;
-		 styleIndex ++ )
-	{
-		[formats insertDescriptor:parseStyle((*sourceStyles) + styleIndex) atIndex:0];
-	}
-	
-	//	clear result code
-	err = noErr ;
-	
-	cleanup :
-	//	close the component connection
-	if ( ci != 0 ) {
-		CloseComponent ( ci ) ;
-		ci = 0 ;
-	}
-	
-	//	forget source styles
-	
-	if ( sourceStyles != 0 ) {
-		DisposeHandle ( ( Handle ) sourceStyles ) ;
-		sourceStyles = 0 ;
-	}
-	return formats;
-}
-*/
 
 + (NSArray *)sourceAttributes
 {
-	OSStatus			err ;
+	OSStatus			err = noErr;
 	ComponentInstance	ci = 0 ;
-	err = errOSAGeneralError ;
-	if ( ( ci = OpenDefaultComponent(kOSAComponentType, kAppleScriptSubtype)) == 0 )
+    if ((ci = [[OSALanguage languageForName:@"AppleScript"] componentInstance]) ==0 )
 	{
-		goto cleanup;
+        [NSException raise:@"ASFormattingException" format:
+         @"Fail to obtain componentInstance in sourceAttributes"];
+		return nil;
 	}
 	
 	CFArrayRef source_styles = NULL;
-	err = ASCopySourceAttributes(ci, &source_styles);
-	
-	cleanup :
-	//	close the component connection
-	if ( ci != 0 ) {
-		CloseComponent ( ci ) ;
-		ci = 0 ;
-	}
+	if ((err = ASCopySourceAttributes(ci, &source_styles)) != noErr) {
+        [NSException raise:@"ASFormattingException" format:@"Fail to ASCopySourceAttributes : %d", err];
+        return nil;
+    }
+    
 	return [(NSArray *)source_styles autorelease];
 }
 
