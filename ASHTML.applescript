@@ -285,14 +285,6 @@ on process_document(doc_ref)
 	return process_attribute_runs(content_list, font_list, size_list, color_list, run_for_selection)
 end process_document
 
-on is_launched()
-	tell application "System Events"
-		--set a_list to application processes whose name is "Script Editor"
-		set a_list to application processes whose bundle identifier is "com.apple.ScriptEditor2"
-	end tell
-	return ((length of a_list) > 0)
-end is_launched
-
 on process_text(codeText, prefer_inline)
 	-- log "start process_text in ASHTML"
 	tell current application's class "ASFormatting"
@@ -314,7 +306,7 @@ on process_text_with_editor(codeText)
 		set my _formattingStyle to make_from_setting() of ASFormattingStyle
 	end if
 	set docTitle to _temporary_doctitle
-	if is_launched() then
+	if (application id "com.apple.ScriptEditor2" is running) then
 		tell application id "com.apple.ScriptEditor2"
 			if exists document docTitle then
 				set contents of document docTitle to codeText
