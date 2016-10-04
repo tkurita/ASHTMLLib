@@ -14,7 +14,11 @@ property _formattingStyle : missing value
 property _wrapWithBlock : true
 property _targetObj : missing value
 property _target_text : missing value
+property _errmsg : missing value
 
+on error_message()
+    return my _errmsg
+end error_message
 
 on empty_handler()
     return me
@@ -158,10 +162,8 @@ on target_text()
 			return contents of contents of my _targetObj
 		end tell
 	end if
-	if my _target_text is not missing value then
-		return my _target_text
-	end if
-	return missing value
+
+    return my _target_text
 end target_text
 
 on process_attribute_runs(content_list, font_list, size_list, color_list, prefer_inline)
@@ -307,7 +309,8 @@ on process_text(code_text, prefer_inline)
 	end try
 	if err_msg is not missing value then
         set my _target_text to code_text
-		error "Failed to compile script. "&err_msg number 1503 from me
+        set my _errmsg to err_msg as text
+		error "Failed to compile script. " number 1503 from me
 	end if
 	--log "before process_attribute_runs"
 	return process_attribute_runs(code of style_runs as list, |font| of style_runs as list, |size| of style_runs as list, |color| of style_runs as list, prefer_inline)
@@ -362,7 +365,7 @@ end use_inline_css
 
 
 on make
-    log "make in ASHTML"
+    --log "make in ASHTML"
     initialize()
 	set a_class to me
 	script ASHTMLInstance
@@ -373,6 +376,7 @@ on make
 		property _target_text : missing value
 		property _markup_with_style : my _markup_with_style
 		property _wrapWithBlock : my _wrapWithBlock
+        property _errmsg : missing value
 	end script
 end make
 (*
