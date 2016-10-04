@@ -16,14 +16,23 @@ property _targetObj : missing value
 property _target_text : missing value
 
 
+on empty_handler()
+    return me
+end empty_handler
+
+on force_initialize()
+    set my _formattingStyle to make_from_setting() of ASFormattingStyle
+    set my _white_charset to XCharacterSet's make_whites_newlines()'s push("")
+    set my _targetObj to missing value
+    set my _target_text to missing value
+end force_initialize
+
 on initialize()
-	set my _formattingStyle to make_from_setting() of ASFormattingStyle
-	set my _white_charset to XCharacterSet's make_whites_newlines()'s push("")
-	set my _targetObj to missing value
-	set my _target_text to missing value
+    force_initialize()
+    set my initialize to empty_handler
 	return me
 end initialize
-
+ 
 on formatting_style()
 	return my _formattingStyle
 end formatting_style
@@ -73,6 +82,8 @@ on markup_with_style_classnames(a_style, a_text)
 	--log "end markup_with_style_classname"
 	return a_result
 end markup_with_style_classnames
+
+property _markup_with_style : markup_with_style_classnames
 
 on markup_with_style_inline(a_style, a_text)
 	set style_text to my _formattingStyle's inline_stylesheet(a_style)
@@ -285,17 +296,18 @@ on process_document(doc_ref)
 	return process_attribute_runs(content_list, font_list, size_list, color_list, run_for_selection)
 end process_document
 
-on process_text(codeText, prefer_inline)
+on process_text(code_text, prefer_inline)
 	-- log "start process_text in ASHTML"
 	tell current application's class "ASFormatting"
-		set style_runs to its styleRunsForSource_(codeText)
+		set style_runs to its styleRunsForSource_(code_text)
 	end tell
 	set err_msg to missing value
 	try
 		set err_msg to style_runs's |OSAScriptErrorBriefMessageKey|
 	end try
 	if err_msg is not missing value then
-		error "Failed to compile script." number 1503
+        set my _target_text to code_text
+		error "Failed to compile script. "&err_msg number 1503 from me
 	end if
 	--log "before process_attribute_runs"
 	return process_attribute_runs(code of style_runs as list, |font| of style_runs as list, |size| of style_runs as list, |color| of style_runs as list, prefer_inline)
@@ -348,15 +360,18 @@ on use_inline_css()
 	set my _markup_with_style to markup_with_style_inline
 end use_inline_css
 
+
 on make
+    log "make in ASHTML"
+    initialize()
 	set a_class to me
-	script ASHTMLCore
+	script ASHTMLInstance
 		property parent : a_class
-		property _formattingStyle : ASFormattingStyle's make_from_setting()
-		property _white_charset : XCharacterSet's make_whites_newlines()'s push("")
+		property _formattingStyle : my _formattingStyle
+		property _white_charset : my _white_charset
 		property _targetObj : missing value
 		property _target_text : missing value
-		property _markup_with_style : markup_with_style_classnames
+		property _markup_with_style : my _markup_with_style
 		property _wrapWithBlock : my _wrapWithBlock
 	end script
 end make
