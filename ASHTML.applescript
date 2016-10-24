@@ -310,7 +310,7 @@ on process_text(code_text, prefer_inline)
 	if err_msg is not missing value then
         set my _target_text to code_text
         set my _errmsg to err_msg as text
-		error "Failed to compile script. " number 1503 from me
+		error "Failed to compile script." number 1503 from me
 	end if
 	--log "before process_attribute_runs"
 	return process_attribute_runs(code of style_runs as list, |font| of style_runs as list, |size| of style_runs as list, |color| of style_runs as list, prefer_inline)
