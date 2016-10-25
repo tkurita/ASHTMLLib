@@ -55,6 +55,13 @@
         NSLog(@"Error in styleRunsForFile %@, path : %@", error_info, path);
         return nil;
     }
+    
+    if (!a_script.isCompiled) {
+        if (![a_script compileAndReturnError:&error_info]) {
+            NSLog(@"Failed to compile in styleRunsForFile %@, path : %@", error_info, path);
+            return nil;
+        }
+    }
 	return [self styleRunsForOSAScript:a_script];
 }
 
