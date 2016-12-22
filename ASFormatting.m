@@ -25,7 +25,7 @@
 	NSMutableArray *attr_list = [NSMutableArray array];
 	NSMutableArray *code_list = [NSMutableArray array];
  	NSDictionary *attributes;
-	unsigned int length = [styled_source length];
+	NSUInteger length = [styled_source length];
 	NSRange effectiveRange = NSMakeRange(0, 0);
 	NSRange all_range = NSMakeRange(0, length);
 	while (NSMaxRange(effectiveRange) < length) {
@@ -78,7 +78,7 @@
 	NSMutableArray *attr_list = [NSMutableArray array];
 	NSMutableArray *code_list = [NSMutableArray array];
  	NSDictionary *attributes;
-	unsigned int length = [styled_source length];
+	NSUInteger length = [styled_source length];
 	NSRange effectiveRange = NSMakeRange(0, 0);
 	NSRange all_range = NSMakeRange(0, length);
 	while (NSMaxRange(effectiveRange) < length) {
