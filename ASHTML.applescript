@@ -257,6 +257,23 @@ on process_attribute_runs(content_list, font_list, size_list, color_list, prefer
 	return out_html
 end process_attribute_runs
 
+on process_url(an_url, prefer_inline)
+    --log "start process_url"
+    tell current application's class "ASFormatting"
+        set style_runs to styleRunsForURL_(an_url)
+    end tell
+    if style_runs is missing value then
+        error "Failed to obtain applescript code." number 1503
+    end if
+    try
+        set my _target_text to |source| of style_runs
+        on error number -2753
+        error "Failed to obtain applescript code." number 1503
+    end try
+    --log "will end process_url"
+    return process_attribute_runs(code of style_runs as list, |font| of style_runs as list, |size| of style_runs as list, |color| of style_runs as list, prefer_inline)
+end process_url
+
 on process_file(a_path, prefer_inline)
 	--log "start process_file"
 	tell current application's class "ASFormatting"

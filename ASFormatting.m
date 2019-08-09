@@ -45,6 +45,25 @@
 			@"source": [styled_source string]};
 }
 
++ (NSDictionary *)styleRunsForURL:(NSURL *)url
+{
+    NSDictionary *error_info = nil;
+    OSAScript *a_script = a_script= [[OSAScript alloc] initWithContentsOfURL:url
+                                                                       error:&error_info];
+    if (error_info) {
+        NSLog(@"Error in styleRunsForFile %@, path : %@", error_info, url.path);
+        return nil;
+    }
+    
+    if (!a_script.isCompiled) {
+        if (![a_script compileAndReturnError:&error_info]) {
+            NSLog(@"Failed to compile in styleRunsForFile %@, path : %@", error_info, url.path);
+            return nil;
+        }
+    }
+    return [self styleRunsForOSAScript:a_script];
+}
+
 + (NSDictionary *)styleRunsForFile:(NSString *)path
 {
 	NSDictionary *error_info = nil;
