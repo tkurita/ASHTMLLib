@@ -188,7 +188,7 @@ NSDictionary *parseStyle3(const NSDictionary *styleDict)
 {
 	OSStatus			err = noErr;
 	ComponentInstance	ci = 0 ;
-    if ((ci = [[OSALanguage languageForName:@"AppleScript"] componentInstance]) ==0 )
+    if ((ci = [[OSALanguage languageForName:@"AppleScript"] componentInstance]) ==0 ) // can be changed to JavaScript
 	{
         [NSException raise:@"ASFormattingException" format:
          @"Fail to obtain componentInstance in sourceAttributes"];
@@ -200,7 +200,9 @@ NSDictionary *parseStyle3(const NSDictionary *styleDict)
         [NSException raise:@"ASFormattingException" format:@"Fail to ASCopySourceAttributes : %d", err];
         return nil;
     }
-    
+#if useLog
+    NSLog(@"%@", source_styles);
+#endif
 	return (NSArray *)CFBridgingRelease(source_styles);
 }
 

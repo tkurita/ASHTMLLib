@@ -109,7 +109,7 @@ on make_from_setting()
 	return FormattingStyle
 end make_from_setting
 
-on make_from_plist()
+on make_from_plist() -- deprecated. use make_from_setting.
 	tell application id "com.apple.systemevents"
 		set applescript_plist to file "com.apple.applescript.plist" of preferences folder as alias
 		set a_record to value of contents of property list file (applescript_plist as Unicode text)

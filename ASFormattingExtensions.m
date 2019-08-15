@@ -6,7 +6,14 @@
 - (NSArray *)rgbArray
 {
 	CGFloat red, green, blue, alpha;
-	[self getRed:&red green:&green blue:&blue alpha:&alpha];
+    NSColor *color = self;
+#if useLog
+    NSLog(@"color space name : %@", [self colorSpaceName]);
+#endif
+    if (![[self colorSpaceName] containsString:@"RGBColor"]) {
+        color = [self colorUsingColorSpace:[NSColorSpace deviceRGBColorSpace]];
+    }
+	[color getRed:&red green:&green blue:&blue alpha:&alpha];
 	NSArray *rgb = @[@((unsigned short)(red * 65535.0f)),
 					@((unsigned short)(green * 65535.0f)),
 					@((unsigned short)(blue * 65535.0f))];
