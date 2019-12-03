@@ -267,7 +267,7 @@ on process_url(an_url, prefer_inline)
     end if
     try
         set my _target_text to |source| of style_runs
-        on error number -2753
+    on error number -2753
         error "Failed to obtain applescript code." number 1503
     end try
     --log "will end process_url"
