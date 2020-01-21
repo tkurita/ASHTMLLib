@@ -47,6 +47,9 @@
 
 + (NSDictionary *)styleRunsForURL:(NSURL *)url
 {
+#if useLog
+    NSLog(@"start styleRunsForURL : %@", url);
+#endif
     NSDictionary *error_info = nil;
     OSAScript *a_script = a_script= [[OSAScript alloc] initWithContentsOfURL:url
                                                                        error:&error_info];
@@ -66,7 +69,10 @@
 
 + (NSDictionary *)styleRunsForFile:(NSString *)path
 {
-	NSDictionary *error_info = nil;
+#if useLog
+    NSLog(@"start styleRunsForFile : %@", path);
+#endif
+    NSDictionary *error_info = nil;
 	NSURL *url = [NSURL fileURLWithPath:path];
 	OSAScript *a_script = a_script= [[OSAScript alloc] initWithContentsOfURL:url 
 																	   error:&error_info];
@@ -86,6 +92,9 @@
 
 + (NSDictionary *)styleRunsForSource:(NSString *)source
 {
+#if useLog
+    NSLog(@"start styleRunsForsource : %@", source);
+#endif
 	OSAScript *a_script = [[OSAScript alloc] initWithSource:source];
 	NSDictionary *error_info = nil;
 	[a_script compileAndReturnError:&error_info];
